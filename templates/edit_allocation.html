@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Allocation | Hostel Admin</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --sidebar-bg: #020617;
+            --card-bg: #1e293b;
+            --accent-blue: #3b82f6;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 260px;
+            height: 100vh;
+            background-color: var(--sidebar-bg);
+            padding: 2rem 1.5rem;
+            position: fixed;
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+        }
+
+        .sidebar h2 {
+            color: var(--accent-blue);
+            font-size: 1.5rem;
+            margin-bottom: 2.5rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .sidebar a {
+            text-decoration: none;
+            color: var(--text-muted);
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: 0.3s;
+            font-weight: 500;
+        }
+
+        .sidebar a:hover, .sidebar a.active {
+            background-color: var(--accent-blue);
+            color: white;
+        }
+
+        .sidebar .logout-link {
+            margin-top: auto;
+            color: var(--accent-red);
+        }
+
+        .sidebar .logout-link:hover {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--accent-red);
+        }
+
+        .main {
+            margin-left: 260px;
+            padding: 2rem 3rem;
+            width: calc(100% - 260px);
+        }
+
+        .page-header h2 {
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .form-card {
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            max-width: 500px;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        select, input, textarea {
+            width: 100%;
+            padding: 0.75rem;
+            background-color: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
+        }
+
+        select:focus, input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            background-color: rgba(59, 130, 246, 0.05);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+        }
+
+        button, .cancel-btn {
+            flex: 1;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+            font-size: 1rem;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        button {
+            background: var(--accent-blue);
+            color: white;
+        }
+
+        button:hover {
+            background: #2563eb;
+            transform: translateY(-2px);
+        }
+
+        .cancel-btn {
+            background: rgba(148, 163, 184, 0.1);
+            color: var(--text-muted);
+        }
+
+        .cancel-btn:hover {
+            background: rgba(148, 163, 184, 0.2);
+        }
+
+        .info {
+            background: rgba(59, 130, 246, 0.1);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            border-left: 3px solid var(--accent-blue);
+        }
+
+        .info p {
+            margin: 0;
+            color: var(--text-main);
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <h2><i class="fa-solid fa-hotel"></i> Admin</h2>
+    <a href="/dashboard"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+    <a href="/students"><i class="fa-solid fa-user-group"></i> Students</a>
+    <a href="/add_student"><i class="fa-solid fa-user-plus"></i> Add Student</a>
+    <a href="/rooms"><i class="fa-solid fa-door-open"></i> Rooms</a>
+    <a href="/add_room"><i class="fa-solid fa-plus-square"></i> Add Room</a>
+    <a href="/expenses"><i class="fa-solid fa-wallet"></i> Expenses</a>
+    <a href="/add_expense"><i class="fa-solid fa-file-invoice-dollar"></i> Add Expense</a>
+    <a href="/allocate"><i class="fa-solid fa-key"></i> Allocate Room</a>
+    <a href="/allocations" class="active"><i class="fa-solid fa-list"></i> Allocations</a>
+    <a href="/add_rent"><i class="fa-solid fa-plus"></i> Add Rent</a>
+    <a href="/rents"><i class="fa-solid fa-money-bill"></i> Rent Records</a>
+    
+    <a href="/logout" class="logout-link"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+</div>
+
+<div class="main">
+    <div class="page-header">
+        <h2><i class="fa-solid fa-pen-to-square"></i> Edit Allocation</h2>
+    </div>
+
+    <div class="form-card">
+        <div class="info">
+            <p><strong>Student:</strong> {{ allocation.first_name }} {{ allocation.last_name }}</p>
+        </div>
+
+        <form method="post">
+            <div class="form-group">
+                <label>Select New Room</label>
+                <select name="room_id" required>
+                    <option value="">-- Choose a Room --</option>
+                    {% for r in rooms %}
+                    <option value="{{ r.room_id }}" {% if r.room_id == allocation.room_id %}selected{% endif %}>Room {{ r.room_no }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="button-group">
+                <button type="submit"><i class="fa-solid fa-check"></i> Update Allocation</button>
+                <a href="/allocations" class="cancel-btn"><i class="fa-solid fa-x"></i> Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+</body>
+</html>

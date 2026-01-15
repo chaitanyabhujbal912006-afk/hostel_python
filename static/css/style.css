@@ -1,0 +1,108 @@
+body{
+    margin:0;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+    color:white;
+}
+
+/* Sidebar */
+.sidebar{
+    position:fixed;
+    left:0;
+    top:0;
+    width:240px;
+    height:100vh;
+    background:rgba(0,0,0,0.6);
+    padding:20px;
+    box-shadow: 0 0 20px rgba(0,0,0,0.7);
+}
+
+.sidebar h2{
+    color:#6bcfff;
+    text-align:center;
+}
+
+.sidebar a{
+    display:block;
+    color:#ddd;
+    text-decoration:none;
+    padding:12px;
+    margin:10px 0;
+    border-radius:10px;
+    transition:0.3s;
+}
+
+.sidebar a:hover{
+    background:#6bcfff;
+    color:#000;
+    box-shadow:0 0 15px #6bcfff;
+    transform: translateX(5px);
+}
+
+/* Main Content */
+.main{
+    margin-left:260px;
+    padding:30px;
+}
+
+/* Cards */
+.cards{
+    display:grid;
+    grid-template-columns: repeat(3,1fr);
+    gap:20px;
+}
+
+.card{
+    background:rgba(255,255,255,0.1);
+    padding:25px;
+    border-radius:18px;
+    box-shadow:0 0 15px rgba(0,0,0,0.6);
+    transition:0.3s;
+}
+
+.card:hover{
+    box-shadow:0 0 30px rgba(107,207,255,0.9);
+    transform: scale(1.05);
+}
+
+.card h3{
+    margin:0;
+    color:#6bcfff;
+}
+
+.card p{
+    font-size:28px;
+    margin-top:10px;
+}
+
+/* Top bar */
+.topbar{
+    font-size:22px;
+    margin-bottom:25px;
+}
+input, button{
+    width:100%;
+    padding:12px;
+    border-radius:10px;
+    border:none;
+    margin-top:10px;
+}
+
+button{
+    background:#6bcfff;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+button:hover{
+    box-shadow:0 0 15px #6bcfff;
+}
+/* FORCE VISIBILITY FIX */
+.main h1, .main h2, .main p, .main label {
+    color: white;
+}
+
+select, option {
+    color: black;
+    background: white;
+}

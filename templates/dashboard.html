@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hostel Admin | Dashboard</title>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --sidebar-bg: #020617;
+            --card-bg: #1e293b;
+            --accent-blue: #3b82f6;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            display: flex;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: 260px;
+            height: 100vh;
+            background-color: var(--sidebar-bg);
+            padding: 2rem 1.5rem;
+            position: fixed;
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar h2 {
+            color: var(--accent-blue);
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 2.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sidebar a {
+            text-decoration: none;
+            color: var(--text-muted);
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .sidebar a i {
+            width: 20px;
+            font-size: 1.1rem;
+        }
+
+        .sidebar a:hover, .sidebar a.active {
+            background-color: var(--accent-blue);
+            color: white;
+        }
+
+        .sidebar .logout-link {
+            margin-top: auto;
+            color: var(--accent-red);
+        }
+
+        .sidebar .logout-link:hover {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--accent-red);
+        }
+
+        /* MAIN CONTENT */
+        .main {
+            margin-left: 260px;
+            padding: 2rem 3rem;
+            width: calc(100% - 260px);
+        }
+
+        .topbar {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .topbar span {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            font-weight: 500;
+            background: rgba(59, 130, 246, 0.1);
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        /* DASHBOARD CARDS */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: transform 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-info h3 {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .stat-info p {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--accent-blue);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        /* CHART CARDS */
+        .charts-container {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .chart-card {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+        }
+
+        .chart-card h3 {
+            font-size: 1.1rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 350px;
+            width: 100%;
+            min-height: 350px;
+        }
+
+        canvas {
+            max-height: 350px !important;
+            display: block !important;
+        }
+
+        @media (max-width: 1024px) {
+            .charts-container { grid-template-columns: 1fr 1fr; }
+        }
+
+        @media (max-width: 768px) {
+            .charts-container { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<nav class="sidebar">
+    <h2><i class="fa-solid fa-hotel"></i> Admin</h2>
+    <a href="/dashboard" class="active"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+    <a href="/students"><i class="fa-solid fa-user-group"></i> Students</a>
+    <a href="/add_student"><i class="fa-solid fa-user-plus"></i> Add Student</a>
+    <a href="/rooms"><i class="fa-solid fa-door-open"></i> Rooms</a>
+    <a href="/add_room"><i class="fa-solid fa-plus-square"></i> Add Room</a>
+    <a href="/expenses"><i class="fa-solid fa-wallet"></i> Expenses</a>
+    <a href="/add_expense"><i class="fa-solid fa-file-invoice-dollar"></i> Add Expense</a>
+    <a href="/allocate"><i class="fa-solid fa-key"></i> Allocate Room</a>
+    <a href="/allocations"><i class="fa-solid fa-list"></i> Allocations</a>
+    <a href="/add_rent"><i class="fa-solid fa-plus"></i> Add Rent</a>
+    <a href="/rents"><i class="fa-solid fa-money-bill"></i> Rent Records</a>
+    
+    <a href="/logout" class="logout-link"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+</nav>
+
+<div class="main">
+    <div class="topbar">
+        Welcome Admin 👋
+        <span>Today is {{ current_date }}</span>
+    </div>
+
+    <!-- STATS ROW -->
+    <div class="cards-grid">
+        <div class="stat-card">
+            <div class="stat-info">
+                <h3>Students</h3>
+                <p>{{ students }}</p>
+            </div>
+            <div class="stat-icon"><i class="fa-solid fa-users"></i></div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-info">
+                <h3>Total Rooms</h3>
+                <p>{{ rooms }}</p>
+            </div>
+            <div class="stat-icon" style="color:var(--accent-green); background:rgba(16,185,129,0.1);"><i class="fa-solid fa-bed"></i></div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-info">
+                <h3>Total Expenses</h3>
+                <p>₹ {{ expense }}</p>
+            </div>
+            <div class="stat-icon" style="color:#fbbf24; background:rgba(251,191,36,0.1);"><i class="fa-solid fa-indian-rupee-sign"></i></div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-info">
+                <h3>Rent Collection</h3>
+                <p>{{ rent_collection_percentage }}%</p>
+            </div>
+            <div class="stat-icon" style="color:#10b981; background:rgba(16,185,129,0.1);"><i class="fa-solid fa-money-bill"></i></div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-info">
+                <h3>Paid Rent</h3>
+                <p>₹ {{ rent_collected }}</p>
+            </div>
+            <div class="stat-icon" style="color:#8b5cf6; background:rgba(139,92,246,0.1);"><i class="fa-solid fa-check-circle"></i></div>
+        </div>
+
+    <!-- CHARTS ROW -->
+    <div class="charts-container">
+        <div class="chart-card">
+            <h3><i class="fa-solid fa-chart-column text-blue-400"></i> Expenses History</h3>
+            <div class="chart-wrapper">
+                <canvas id="expenseChart"></canvas>
+            </div>
+        </div>
+
+        <div class="chart-card">
+            <h3><i class="fa-solid fa-chart-pie text-green-400"></i> Occupancy</h3>
+            <div class="chart-wrapper">
+                <canvas id="roomChart"></canvas>
+            </div>
+        </div>
+
+        <div class="chart-card">
+            <h3><i class="fa-solid fa-chart-bar"></i> Rent Payment Status</h3>
+            <div class="chart-wrapper">
+                <canvas id="paymentChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Wait for Chart.js to load
+    document.addEventListener('DOMContentLoaded', function() {
+        
+        // Expense Bar Chart Data
+        const expenseLabels = [{% for e in expense_data %}"{{ e.expense_date }}"{% if not loop.last %},{% endif %}{% endfor %}];
+        const expenseValues = [{% for e in expense_data %}{{ e.total }}{% if not loop.last %},{% endif %}{% endfor %}];
+        
+        // Overall Occupancy Data
+        const occupancyLabels = ['Occupied', 'Available'];
+        const occupancyValues = [{{ total_occupied }}, {{ total_available }}];
+
+        // Rent Payment Status Data
+        const paymentLabels = ['Paid', 'Unpaid'];
+        const paymentValues = [{{ total_paid_rent }}, {{ total_unpaid_rent }}];
+
+        console.log('Expense Data:', expenseLabels, expenseValues);
+        console.log('Occupancy Data:', occupancyLabels, occupancyValues);
+
+        // Chart.js theme colors
+        const chartColors = {
+            blue: '#3b82f6',
+            red: '#ef4444',
+            yellow: '#fbbf24',
+            green: '#10b981',
+            purple: '#8b5cf6',
+            pink: '#ec4899'
+        };
+
+        const textColor = '#94a3b8';
+        const gridColor = '#334155';
+
+        // EXPENSE LINE CHART
+        if (document.getElementById('expenseChart')) {
+            const expenseCtx = document.getElementById('expenseChart').getContext('2d');
+            
+            // Create gradient
+            const gradient = expenseCtx.createLinearGradient(0, 0, 0, 350);
+            gradient.addColorStop(0, 'rgba(59, 130, 246, 0.3)');
+            gradient.addColorStop(1, 'rgba(59, 130, 246, 0.01)');
+            
+            new Chart(expenseCtx, {
+                type: 'line',
+                data: {
+                    labels: expenseLabels,
+                    datasets: [{
+                        label: 'Expenses (₹)',
+                        data: expenseValues,
+                        borderColor: chartColors.blue,
+                        backgroundColor: gradient,
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 5,
+                        pointBackgroundColor: chartColors.blue,
+                        pointBorderColor: '#1e293b',
+                        pointBorderWidth: 2,
+                        pointHoverRadius: 7,
+                        pointHoverBackgroundColor: '#60a5fa',
+                        hoverBorderWidth: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    plugins: {
+                        legend: {
+                            display: true,
+                            labels: {
+                                color: textColor,
+                                font: { family: 'Inter', size: 12, weight: '600' },
+                                padding: 15,
+                                usePointStyle: true,
+                                pointStyle: 'circle'
+                            }
+                        },
+                        filler: {
+                            propagate: true
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: gridColor,
+                                drawBorder: false,
+                                lineWidth: 1
+                            },
+                            ticks: {
+                                color: textColor,
+                                font: { family: 'Inter', size: 11 },
+                                padding: 10
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false,
+                                drawBorder: false
+                            },
+                            ticks: {
+                                color: textColor,
+                                font: { family: 'Inter', size: 11 },
+                                padding: 10
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // OCCUPANCY DOUGHNUT CHART
+        if (document.getElementById('roomChart')) {
+            const roomCtx = document.getElementById('roomChart').getContext('2d');
+            new Chart(roomCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: occupancyLabels,
+                    datasets: [{
+                        data: occupancyValues,
+                        backgroundColor: [
+                            chartColors.green,
+                            chartColors.blue
+                        ],
+                        borderColor: '#1e293b',
+                        borderWidth: 2,
+                        hoverOffset: 12
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '65%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: textColor,
+                                font: { family: 'Inter', size: 12 },
+                                padding: 20,
+                                usePointStyle: true,
+                                pointStyle: 'circle'
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.label + ': ' + context.parsed + ' beds';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // PAYMENT STATUS CHART
+        if (document.getElementById('paymentChart')) {
+            const paymentCtx = document.getElementById('paymentChart').getContext('2d');
+            new Chart(paymentCtx, {
+                type: 'bar',
+                data: {
+                    labels: paymentLabels,
+                    datasets: [{
+                        label: 'Number of Rents',
+                        data: paymentValues,
+                        backgroundColor: [
+                            chartColors.green,
+                            '#94a3b8'
+                        ],
+                        borderColor: [chartColors.green, '#94a3b8'],
+                        borderWidth: 0,
+                        borderRadius: 6,
+                        hoverBackgroundColor: ['#059669', '#cbd5e1']
+                    }]
+                },
+                options: {
+                    indexAxis: 'x',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: gridColor,
+                                drawBorder: false
+                            },
+                            ticks: {
+                                color: textColor,
+                                font: { family: 'Inter' }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: textColor,
+                                font: { family: 'Inter' }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    });
+</script>
+
+</body>
+</html>

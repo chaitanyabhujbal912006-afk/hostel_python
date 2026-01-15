@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rooms | Hostel Admin</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --sidebar-bg: #020617;
+            --card-bg: #1e293b;
+            --accent-blue: #3b82f6;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 260px;
+            height: 100vh;
+            background-color: var(--sidebar-bg);
+            padding: 2rem 1.5rem;
+            position: fixed;
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+        }
+
+        .sidebar h2 {
+            color: var(--accent-blue);
+            font-size: 1.5rem;
+            margin-bottom: 2.5rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .sidebar a {
+            text-decoration: none;
+            color: var(--text-muted);
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: 0.3s;
+            font-weight: 500;
+        }
+
+        .sidebar a:hover, .sidebar a.active {
+            background-color: var(--accent-blue);
+            color: white;
+        }
+
+        .sidebar .logout-link {
+            margin-top: auto;
+            color: var(--accent-red);
+        }
+
+        .sidebar .logout-link:hover {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--accent-red);
+        }
+
+        .main {
+            margin-left: 260px;
+            padding: 2rem 3rem;
+            width: calc(100% - 260px);
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .page-header h2 {
+            font-size: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .rooms-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .room-card {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            transition: 0.3s;
+        }
+
+        .room-card:hover {
+            border-color: var(--accent-blue);
+            transform: translateY(-5px);
+            box-shadow: 0 8px 24px rgba(59, 130, 246, 0.1);
+        }
+
+        .room-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 1rem;
+        }
+
+        .room-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(59, 130, 246, 0.1);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--accent-blue);
+            font-size: 1.3rem;
+        }
+
+        .room-card h3 {
+            font-size: 1.3rem;
+            margin: 0;
+        }
+
+        .room-details {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+            margin-top: 1rem;
+        }
+
+        .detail {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .detail-label {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .detail-value {
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .status-available {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--accent-green);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-full {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--accent-red);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 10px;
+            padding-top: 1rem;
+            margin-top: 1rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 8px 12px;
+            border-radius: 8px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            transition: 0.2s;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-edit {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--accent-blue);
+        }
+
+        .btn-edit:hover {
+            background: var(--accent-blue);
+            color: white;
+        }
+
+        .btn-delete {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--accent-red);
+        }
+
+        .btn-delete:hover {
+            background: var(--accent-red);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <h2><i class="fa-solid fa-hotel"></i> Admin</h2>
+    <a href="/dashboard"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+    <a href="/students"><i class="fa-solid fa-user-group"></i> Students</a>
+    <a href="/add_student"><i class="fa-solid fa-user-plus"></i> Add Student</a>
+    <a href="/rooms" class="active"><i class="fa-solid fa-door-open"></i> Rooms</a>
+    <a href="/add_room"><i class="fa-solid fa-plus-square"></i> Add Room</a>
+    <a href="/expenses"><i class="fa-solid fa-wallet"></i> Expenses</a>
+    <a href="/add_expense"><i class="fa-solid fa-file-invoice-dollar"></i> Add Expense</a>
+    <a href="/allocate"><i class="fa-solid fa-key"></i> Allocate Room</a>
+    <a href="/allocations"><i class="fa-solid fa-list"></i> Allocations</a>
+    <a href="/add_rent"><i class="fa-solid fa-plus"></i> Add Rent</a>
+    <a href="/rents"><i class="fa-solid fa-money-bill"></i> Rent Records</a>
+    
+    <a href="/logout" class="logout-link"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+</div>
+
+<div class="main">
+    <div class="page-header">
+        <h2><i class="fa-solid fa-door-open"></i> Rooms</h2>
+        <a href="/add_room" style="text-decoration: none; color: var(--accent-blue);">
+            <i class="fa-solid fa-plus"></i> Add New
+        </a>
+    </div>
+
+    <div class="rooms-grid">
+        {% for r in rooms %}
+        <div class="room-card">
+            <div class="room-header">
+                <div class="room-icon">
+                    <i class="fa-solid fa-door-open"></i>
+                </div>
+                <h3>Room {{ r.room_no }}</h3>
+            </div>
+
+            <div class="room-details">
+                <div class="detail">
+                    <span class="detail-label">Type:</span>
+                    <span class="detail-value">{{ r.room_type }}</span>
+                </div>
+                <div class="detail">
+                    <span class="detail-label">Capacity:</span>
+                    <span class="detail-value">{{ r.capacity }} Beds</span>
+                </div>
+                <div class="detail">
+                    <span class="detail-label">Occupied:</span>
+                    <span class="detail-value">{{ r.occupied }}/{{ r.capacity }}</span>
+                </div>
+                <div class="detail">
+                    <span class="detail-label">Status:</span>
+                    {% if r.occupied < r.capacity %}
+                        <span class="status-available">Available</span>
+                    {% else %}
+                        <span class="status-full">Full</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card-actions">
+                <a href="/edit_room/{{ r.room_id }}" class="action-btn btn-edit" title="Edit">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                </a>
+                <a href="/delete_room/{{ r.room_id }}" class="action-btn btn-delete" onclick="return confirm('Delete this room?')" title="Delete">
+                    <i class="fa-solid fa-trash-can"></i>
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+</body>
+</html>

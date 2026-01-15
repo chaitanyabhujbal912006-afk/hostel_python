@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Expense | Hostel Admin</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --sidebar-bg: #020617;
+            --card-bg: #1e293b;
+            --accent-blue: #3b82f6;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: #334155;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 260px;
+            height: 100vh;
+            background-color: var(--sidebar-bg);
+            padding: 2rem 1.5rem;
+            position: fixed;
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+        }
+
+        .sidebar h2 {
+            color: var(--accent-blue);
+            font-size: 1.5rem;
+            margin-bottom: 2.5rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .sidebar a {
+            text-decoration: none;
+            color: var(--text-muted);
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: 0.3s;
+            font-weight: 500;
+        }
+
+        .sidebar a:hover, .sidebar a.active {
+            background-color: var(--accent-blue);
+            color: white;
+        }
+
+        .sidebar .logout-link {
+            margin-top: auto;
+            color: var(--accent-red);
+        }
+
+        .sidebar .logout-link:hover {
+            background-color: rgba(239, 68, 68, 0.1);
+            color: var(--accent-red);
+        }
+
+        .main {
+            margin-left: 260px;
+            padding: 2rem 3rem;
+            width: calc(100% - 260px);
+        }
+
+        .page-header h2 {
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .form-card {
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            max-width: 500px;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        select, input, textarea {
+            width: 100%;
+            padding: 0.75rem;
+            background-color: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
+        }
+
+        select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2394a3b8' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            padding-right: 2.5rem;
+        }
+
+        select option {
+            background-color: #1e293b;
+            color: #f8fafc;
+            padding: 10px;
+        }
+
+        select option:hover {
+            background-color: #3b82f6;
+        }
+
+        select:focus, input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+            background-color: rgba(59, 130, 246, 0.05);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        button {
+            flex: 1;
+            padding: 0.75rem;
+            background: var(--accent-blue);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+            font-size: 1rem;
+        }
+
+        button:hover {
+            background: #2563eb;
+            transform: translateY(-2px);
+        }
+
+        .btn-cancel {
+            background-color: var(--text-muted);
+        }
+
+        .btn-cancel:hover {
+            background-color: var(--border-color);
+        }
+
+        .error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--accent-red);
+            color: var(--accent-red);
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <h2><i class="fa-solid fa-hotel"></i> Admin</h2>
+    <a href="/dashboard"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
+    <a href="/students"><i class="fa-solid fa-user-group"></i> Students</a>
+    <a href="/add_student"><i class="fa-solid fa-user-plus"></i> Add Student</a>
+    <a href="/rooms"><i class="fa-solid fa-door-open"></i> Rooms</a>
+    <a href="/add_room"><i class="fa-solid fa-plus-square"></i> Add Room</a>
+    <a href="/expenses" class="active"><i class="fa-solid fa-wallet"></i> Expenses</a>
+    <a href="/add_expense"><i class="fa-solid fa-file-invoice-dollar"></i> Add Expense</a>
+    <a href="/allocate"><i class="fa-solid fa-key"></i> Allocate Room</a>
+    <a href="/allocations"><i class="fa-solid fa-list"></i> Allocations</a>
+    <a href="/add_rent"><i class="fa-solid fa-plus"></i> Add Rent</a>
+    <a href="/rents"><i class="fa-solid fa-money-bill"></i> Rent Records</a>
+    
+    <a href="/logout" class="logout-link"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+</div>
+
+<div class="main">
+    <div class="page-header">
+        <h2><i class="fa-solid fa-file-invoice-dollar"></i> Edit Expense</h2>
+    </div>
+
+    <div class="form-card">
+        {% if error %}
+        <div class="error">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            <span>{{ error }}</span>
+        </div>
+        {% endif %}
+
+        <form method="post">
+            <div class="form-group">
+                <label for="expense_type">Expense Type <span style="color: var(--accent-red);">*</span></label>
+                <input type="text" id="expense_type" name="expense_type" value="{{ expense.expense_type }}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="amount">Amount (₹) <span style="color: var(--accent-red);">*</span></label>
+                <input type="number" id="amount" name="amount" step="0.01" value="{{ expense.amount }}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="expense_date">Date <span style="color: var(--accent-red);">*</span></label>
+                <input type="date" id="expense_date" name="expense_date" value="{{ expense.expense_date }}" required>
+            </div>
+
+            <div class="form-group">
+                <label for="description">Description</label>
+                <textarea id="description" name="description" rows="4">{{ expense.description }}</textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="payment_method">Payment Method</label>
+                <select id="payment_method" name="payment_method">
+                    <option value="Cash" {% if expense.payment_method == 'Cash' %}selected{% endif %}>Cash</option>
+                    <option value="Bank Transfer" {% if expense.payment_method == 'Bank Transfer' %}selected{% endif %}>Bank Transfer</option>
+                    <option value="Cheque" {% if expense.payment_method == 'Cheque' %}selected{% endif %}>Cheque</option>
+                    <option value="UPI" {% if expense.payment_method == 'UPI' %}selected{% endif %}>UPI</option>
+                </select>
+            </div>
+
+            <div class="button-group">
+                <button type="submit"><i class="fa-solid fa-save"></i> Update Expense</button>
+                <a href="/expenses" style="display: flex; align-items: center; justify-content: center; flex: 1; text-decoration: none; padding: 0.75rem; background-color: var(--text-muted); color: var(--bg-dark); border-radius: 8px; font-weight: 600; cursor: pointer; transition: 0.3s;">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+</body>
+</html>
