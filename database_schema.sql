@@ -169,7 +169,7 @@ CREATE TABLE audit_log (
     log_id INT PRIMARY KEY AUTO_INCREMENT,
     admin_id INT,
     action VARCHAR(100) NOT NULL,
-    table_name VARCHAR(50) NOT NULL,
+    table_name VARCHAR(50) NOT NULL, R                          
     record_id INT,
     old_value TEXT,
     new_value TEXT,
@@ -203,6 +203,13 @@ INSERT INTO student (first_name, last_name, email, phone, enrollment_date, statu
 ('Rajesh', 'Kumar', 'rajesh@email.com', '9876543210', '2026-01-01', 'Active'),
 ('Priya', 'Singh', 'priya@email.com', '9876543211', '2026-01-02', 'Active'),
 ('Arjun', 'Patel', 'arjun@email.com', '9876543212', '2026-01-03', 'Active');
+
+-- Verify AUTO_INCREMENT is set correctly
+ALTER TABLE student AUTO_INCREMENT = 1;
+
+-- Check current AUTO_INCREMENT value
+SELECT AUTO_INCREMENT FROM information_schema.TABLES 
+WHERE TABLE_NAME = 'student' AND TABLE_SCHEMA = 'hostel_db';
 
 -- ============================================
 -- VIEWS (For commonly used queries)

@@ -14,7 +14,7 @@
             --sidebar-bg: #020617;
             --card-bg: #1e293b;
             --accent-blue: #3b82f6;
-            --accent-green: #10b981;
+            --accent-green: #007850;
             --accent-red: #ef4444;
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
@@ -240,6 +240,28 @@
             background: #dc2626;
             transform: translateY(-2px);
         }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1.5rem;
+        }
+
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        th {
+            background-color: var(--card-bg);
+            color: var(--text-main);
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
     </style>
 </head>
 <body>
@@ -269,48 +291,41 @@
         </a>
     </div>
 
-    <div class="rents-grid">
-        {% for r in rents %}
-        <div class="rent-card">
-            <div class="rent-header">
-                <div class="rent-icon">
-                    <i class="fa-solid fa-receipt"></i>
-                </div>
-                <h3>{{ r.first_name }} {{ r.last_name }}</h3>
-            </div>
-
-            <div class="rent-details">
-                <div class="detail">
-                    <span class="detail-label">Month:</span>
-                    <span class="detail-value">{{ r.month_year }}</span>
-                </div>
-                <div class="detail">
-                    <span class="detail-label">Amount:</span>
-                    <span class="amount">₹{{ r.amount }}</span>
-                </div>
-                <div class="detail">
-                    <span class="detail-label">Status:</span>
-                    {% if r.status == 'Paid' %}
-                        <span class="status-paid">{{ r.status }}</span>
-                    {% else %}
-                        <span class="status-pending">{{ r.status }}</span>
-                    {% endif %}
-                </div>
-            </div>
-
-            <div class="action-buttons">
-                <a href="/edit_rent/{{ r.rent_id }}" class="btn btn-edit">
-                    <i class="fa-solid fa-pencil"></i> Edit
-                </a>
-                <form method="POST" action="/delete_rent/{{ r.rent_id }}" style="flex: 1;" onsubmit="return confirm('Are you sure you want to delete this rent record?');">
-                    <button type="submit" class="btn btn-delete" style="width: 100%; margin: 0;">
-                        <i class="fa-solid fa-trash"></i> Delete
-                    </button>
-                </form>
-            </div>
-        </div>
-        {% endfor %}
-    </div>
+    {% if error %}
+        <p style="color: red;">{{ error }}</p>
+    {% endif %}
+    {% if rents %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Rent ID</th>
+                    <th>Student Name</th>
+                    <th>Room ID</th>
+                    <th>Month/Year</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Due Date</th>
+                    <th>Paid Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for rent in rents %}
+                    <tr>
+                        <td>{{ rent.rent_id }}</td>
+                        <td>{{ rent.first_name }} {{ rent.last_name }}</td>
+                        <td>{{ rent.room_id }}</td>
+                        <td>{{ rent.month_year }}</td>
+                        <td>{{ rent.amount }}</td>
+                        <td>{{ rent.status }}</td>
+                        <td>{{ rent.due_date }}</td>
+                        <td>{{ rent.paid_date or 'N/A' }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No rent records found.</p>
+    {% endif %}
 </div>
 
 </body>

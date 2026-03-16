@@ -201,6 +201,11 @@
     </div>
 
     <div class="form-card">
+        {% if error %}
+        <div style="margin-bottom: 1rem; padding: 0.85rem 1rem; border-radius: 8px; background: rgba(239, 68, 68, 0.12); border: 1px solid rgba(239, 68, 68, 0.35); color: #fecaca;">
+            {{ error }}
+        </div>
+        {% endif %}
         <form method="post">
             <div class="form-group">
                 <label>First Name</label>
