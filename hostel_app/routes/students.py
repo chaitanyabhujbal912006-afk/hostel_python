@@ -1,7 +1,5 @@
-import mysql.connector
 from flask import Blueprint, redirect, render_template, request
 
-from hostel_app.auth import login_required
 from hostel_app.db import get_db_connection
 
 
@@ -9,7 +7,6 @@ students_bp = Blueprint("students", __name__)
 
 
 @students_bp.route("/add_student", methods=["GET", "POST"])
-@login_required
 def add_student():
     if request.method == "POST":
         try:
@@ -21,7 +18,7 @@ def add_student():
             guardian_phone = request.form.get("guardian_phone", "").strip()
 
             if not all([first_name, last_name, email, phone]):
-                return render_template("add_student.html", error="All fields required")
+                return render_template("add_student.html", error="All fields required", active_page="add_student")
 
             db, cursor = get_db_connection()
             cursor.execute(
@@ -33,16 +30,16 @@ def add_student():
             )
             db.commit()
             return redirect("/students")
-        except mysql.connector.Error as err:
-            if err.errno == 1062:
-                return render_template("add_student.html", error="Email or phone already exists")
-            return render_template("add_student.html", error="Error adding student")
+        except Exception as err:
+            print(f"Error adding student: {err}")
+            if "UNIQUE" in str(err) or "unique" in str(err):
+                return render_template("add_student.html", error="Email or phone already exists", active_page="add_student")
+            return render_template("add_student.html", error="Error adding student", active_page="add_student")
 
-    return render_template("add_student.html")
+    return render_template("add_student.html", active_page="add_student")
 
 
 @students_bp.route("/students")
-@login_required
 def students():
     try:
         _, cursor = get_db_connection()
@@ -57,13 +54,13 @@ def students():
             """
         )
         data = cursor.fetchall()
-        return render_template("students.html", students=data)
-    except Exception:
-        return render_template("students.html", students=[], error="Error loading students")
+        return render_template("students.html", students=data, active_page="students")
+    except Exception as err:
+        print(f"Error loading students: {err}")
+        return render_template("students.html", students=[], error=f"Error loading students: {err}", active_page="students")
 
 
 @students_bp.route("/edit_student/<int:student_id>", methods=["GET", "POST"])
-@login_required
 def edit_student(student_id):
     db, cursor = get_db_connection()
 
@@ -94,8 +91,7 @@ def edit_student(student_id):
             )
             db.commit()
             return redirect("/students")
-        except mysql.connector.Error as err:
-            db.rollback()
+        except Exception as err:
             student = {
                 "student_id": student_id,
                 "first_name": first_name,
@@ -103,9 +99,10 @@ def edit_student(student_id):
                 "email": email,
                 "phone": phone,
             }
-            if err.errno == 1062:
+            db.rollback()
+            if "UNIQUE" in str(err).upper():
                 return render_template("edit_student.html", student=student, error="Email or phone already exists")
-            return render_template("edit_student.html", student=student, error=f"Error updating student: {err.msg}")
+            return render_template("edit_student.html", student=student, error=f"Error updating student: {err}")
 
     cursor.execute("SELECT * FROM student WHERE student_id=%s", (student_id,))
     student = cursor.fetchone()
@@ -115,7 +112,6 @@ def edit_student(student_id):
 
 
 @students_bp.route("/delete_student/<int:student_id>")
-@login_required
 def delete_student(student_id):
     db, cursor = get_db_connection()
     try:

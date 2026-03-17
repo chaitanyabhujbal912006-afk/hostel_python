@@ -1,7 +1,5 @@
-import mysql.connector
 from flask import Blueprint, redirect, render_template, request
 
-from hostel_app.auth import login_required
 from hostel_app.db import get_db_connection
 
 
@@ -9,7 +7,6 @@ rooms_bp = Blueprint("rooms", __name__)
 
 
 @rooms_bp.route("/add_room", methods=["GET", "POST"])
-@login_required
 def add_room():
     if request.method == "POST":
         try:
@@ -19,7 +16,7 @@ def add_room():
             price_per_month = request.form.get("price_per_month", 0)
 
             if not room_no or not capacity or not price_per_month:
-                return render_template("add_room.html", error="All fields required")
+                return render_template("add_room.html", error="All fields required", active_page="add_room")
 
             db, cursor = get_db_connection()
             cursor.execute(
@@ -31,16 +28,16 @@ def add_room():
             )
             db.commit()
             return redirect("/rooms")
-        except mysql.connector.Error as err:
-            if err.errno == 1062:
-                return render_template("add_room.html", error="Room number already exists")
-            return render_template("add_room.html", error="Error adding room")
+        except Exception as err:
+            print(f"Error adding room: {err}")
+            if "UNIQUE" in str(err) or "unique" in str(err):
+                return render_template("add_room.html", error="Room number already exists", active_page="add_room")
+            return render_template("add_room.html", error="Error adding room", active_page="add_room")
 
-    return render_template("add_room.html")
+    return render_template("add_room.html", active_page="add_room")
 
 
 @rooms_bp.route("/rooms")
-@login_required
 def rooms():
     try:
         _, cursor = get_db_connection()
@@ -51,13 +48,13 @@ def rooms():
             """
         )
         data = cursor.fetchall()
-        return render_template("rooms.html", rooms=data)
-    except Exception:
-        return render_template("rooms.html", rooms=[], error="Error loading rooms")
+        return render_template("rooms.html", rooms=data, active_page="rooms")
+    except Exception as err:
+        print(f"Error loading rooms: {err}")
+        return render_template("rooms.html", rooms=[], error=f"Error loading rooms: {err}", active_page="rooms")
 
 
 @rooms_bp.route("/edit_room/<int:room_id>", methods=["GET", "POST"])
-@login_required
 def edit_room(room_id):
     db, cursor = get_db_connection()
 
@@ -78,8 +75,8 @@ def edit_room(room_id):
             )
             db.commit()
             return redirect("/rooms")
-        except Exception:
-            return render_template("edit_room.html", error="Error updating room")
+        except Exception as err:
+            return render_template("edit_room.html", error=f"Error updating room: {err}")
 
     try:
         cursor.execute("SELECT * FROM room WHERE room_id=%s", (room_id,))
@@ -90,7 +87,6 @@ def edit_room(room_id):
 
 
 @rooms_bp.route("/delete_room/<int:room_id>")
-@login_required
 def delete_room(room_id):
     db, cursor = get_db_connection()
     cursor.execute("DELETE FROM allocation WHERE room_id=%s", (room_id,))

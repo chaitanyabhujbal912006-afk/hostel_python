@@ -1,333 +1,65 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin | Student Directory</title>
-    
-    <!-- Google Fonts & Icons -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+{% extends "base.html" %}
 
-    <style>
-        :root {
-            --bg-dark: #0f172a;
-            --sidebar-bg: #020617;
-            --card-bg: #1e293b;
-            --accent-blue: #3b82f6;
-            --accent-green: #10b981;
-            --accent-red: #ef4444;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --border-color: #334155;
-        }
+{% block title %}Hostel Command | Students{% endblock %}
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Inter', sans-serif;
-        }
-
-        body {
-            background-color: var(--bg-dark);
-            color: var(--text-main);
-            display: flex;
-            min-height: 100vh;
-        }
-
-        /* --- SIDEBAR REPLICATED FROM DASHBOARD --- */
-        .sidebar {
-            width: 260px;
-            height: 100vh;
-            background-color: var(--sidebar-bg);
-            padding: 2rem 1.5rem;
-            position: fixed;
-            border-right: 1px solid var(--border-color);
-            display: flex;
-            flex-direction: column;
-            z-index: 100;
-        }
-
-        .sidebar h2 {
-            color: var(--accent-blue);
-            font-size: 1.5rem;
-            margin-bottom: 2.5rem;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .sidebar a {
-            text-decoration: none;
-            color: var(--text-muted);
-            padding: 12px 15px;
-            border-radius: 8px;
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            transition: 0.3s;
-            font-weight: 500;
-        }
-
-        .sidebar a:hover, .sidebar a.active {
-            background-color: var(--accent-blue);
-            color: white;
-        }
-
-        /* --- MAIN CONTENT --- */
-        .main {
-            margin-left: 260px;
-            padding: 2.5rem 3rem;
-            width: calc(100% - 260px);
-        }
-
-        /* --- PAGE HEADER & SEARCH ALIGNMENT FIX --- */
-        .page-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center; /* Vertically centers Title vs Search Bar */
-            margin-bottom: 3rem;
-        }
-
-        .page-header h2 {
-            font-size: 1.8rem;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .search-container {
-            position: relative;
-            width: 350px;
-        }
-
-        .search-container i {
-            position: absolute;
-            left: 16px;
-            top: 50%;
-            transform: translateY(-50%); /* PERFECT VERTICAL CENTER */
-            color: var(--text-muted);
-            font-size: 1rem;
-            pointer-events: none;
-        }
-
-        .search-container input {
-            width: 100%;
-            padding: 12px 15px 12px 45px; /* Extra left padding for icon */
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 12px;
-            color: white;
-            font-size: 0.95rem;
-            outline: none;
-            transition: all 0.3s ease;
-        }
-
-        .search-container input:focus {
-            border-color: var(--accent-blue);
-            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
-        }
-
-        /* --- STUDENT GRID --- */
-        .student-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 2rem;
-        }
-
-        .student-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
-            padding: 1.5rem;
-            transition: all 0.3s ease;
-        }
-
-        .student-card:hover {
-            transform: translateY(-8px);
-            border-color: var(--accent-blue);
-            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
-        }
-
-        .student-header {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 1.5rem;
-        }
-
-        .avatar {
-            width: 56px;
-            height: 56px;
-            background: linear-gradient(135deg, var(--accent-blue), #1d4ed8);
-            color: white;
-            border-radius: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 1.3rem;
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-        }
-
-        .student-info h3 {
-            font-size: 1.15rem;
-            font-weight: 600;
-            margin-bottom: 2px;
-        }
-
-        .student-info span {
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            font-weight: 500;
-        }
-
-        .contact-details {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-bottom: 1.5rem;
-        }
-
-        .detail-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            font-size: 0.9rem;
-            color: var(--text-muted);
-        }
-
-        .detail-item i {
-            width: 18px;
-            color: var(--accent-blue);
-            font-size: 0.9rem;
-        }
-
-        /* --- ACTION BUTTONS --- */
-        .card-actions {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 10px;
-            padding-top: 1.2rem;
-            border-top: 1px solid var(--border-color);
-        }
-
-        .action-btn {
-            padding: 10px;
-            border-radius: 10px;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1rem;
-            transition: 0.2s;
-        }
-
-        .btn-edit { background: rgba(59, 130, 246, 0.1); color: var(--accent-blue); }
-        .btn-edit:hover { background: var(--accent-blue); color: white; }
-
-        .btn-whatsapp { background: rgba(16, 185, 129, 0.1); color: var(--accent-green); }
-        .btn-whatsapp:hover { background: var(--accent-green); color: white; }
-
-        .btn-delete { background: rgba(239, 68, 68, 0.1); color: var(--accent-red); }
-        .btn-delete:hover { background: var(--accent-red); color: white; }
-
-    </style>
-</head>
-<body>
-
-    <!-- SIDEBAR -->
-    <div class="sidebar">
-        <h2><i class="fa-solid fa-hotel"></i> Admin</h2>
-        <a href="/dashboard"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
-        <a href="/students" class="active"><i class="fa-solid fa-user-group"></i> Students</a>
-        <a href="/add_student"><i class="fa-solid fa-user-plus"></i> Add Student</a>
-        <a href="/rooms"><i class="fa-solid fa-door-open"></i> Rooms</a>
-        <a href="/add_room"><i class="fa-solid fa-plus-square"></i> Add Room</a>
-        <a href="/expenses"><i class="fa-solid fa-wallet"></i> Expenses</a>
-        <a href="/add_expense"><i class="fa-solid fa-file-invoice-dollar"></i> Add Expense</a>
-        <a href="/allocate"><i class="fa-solid fa-key"></i> Allocate Room</a>
-        <a href="/allocations"><i class="fa-solid fa-list"></i> Allocations</a>
-        <a href="/add_rent"><i class="fa-solid fa-plus"></i> Add Rent</a>
-        <a href="/rents"><i class="fa-solid fa-money-bill"></i> Rent Records</a>
-        
-        <a href="/logout" class="logout-link"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+{% block content %}
+<section class="page-top">
+    <div>
+        <p class="page-kicker">Resident Directory</p>
+        <h2 class="page-title">Students with a sharper operational view.</h2>
+        <p class="page-subtitle">Cleaner identity cards, faster scanability, and a more premium presentation for occupancy and contact data.</p>
     </div>
+    <div class="search-shell">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <input type="text" id="studentSearch" placeholder="Search by name or email..." onkeyup="filterStudents()">
+    </div>
+</section>
 
-    <!-- MAIN CONTENT -->
-    <div class="main">
-        <div class="page-header">
-            <h2><i class="fa-solid fa-user-graduate" style="color: var(--accent-blue);"></i> Student Directory</h2>
-            
-            <div class="search-container">
-                <i class="fa-solid fa-magnifying-glass"></i>
-                <input type="text" id="studentSearch" placeholder="Search by name or email..." onkeyup="filterStudents()">
-            </div>
-        </div>
-
-        <div class="student-grid" id="studentGrid">
-            {% for s in students %}
-            <div class="student-card">
-                <div class="student-header">
-                    <div class="avatar">{{ s.first_name[0] }}{{ s.last_name[0] }}</div>
-                    <div class="student-info">
-                        <h3>{{ s.first_name }} {{ s.last_name }}</h3>
-                        <span>ID: #STU-{{ loop.index + 100 }}</span>
-                    </div>
-                </div>
-
-                <div class="contact-details">
-                    <div class="detail-item">
-                        <i class="fa-solid fa-envelope"></i> {{ s.email }}
-                    </div>
-                    <div class="detail-item">
-                        <i class="fa-solid fa-phone"></i> {{ s.phone }}
-                    </div>
-                    <div class="detail-item">
-                        <i class="fa-solid fa-door-open"></i> 
-                        {% if s.room_no %}
-                            <strong style="color: var(--accent-green);">Room {{ s.room_no }}</strong>
-                        {% else %}
-                            <span style="color: var(--text-muted);">Not Allocated</span>
-                        {% endif %}
-                    </div>
-                </div>
-
-                <div class="card-actions">
-                    <a href="/edit_student/{{ s.student_id }}" class="action-btn btn-edit" title="Edit Profile">
-                        <i class="fa-solid fa-pen-to-square"></i>
-                    </a>
-                    <a href="https://wa.me/{{ s.phone }}" target="_blank" class="action-btn btn-whatsapp" title="WhatsApp Message">
-                        <i class="fa-brands fa-whatsapp"></i>
-                    </a>
-                    <a href="/delete_student/{{ s.student_id }}" class="action-btn btn-delete" onclick="return confirm('Delete this record?')" title="Delete Student">
-                        <i class="fa-solid fa-trash-can"></i>
-                    </a>
+<section class="student-grid" id="studentGrid">
+    {% for s in students %}
+    <article class="student-card premium-panel">
+        <div class="card-top">
+            <div style="display:flex; gap:14px; align-items:center;">
+                <div class="avatar-tile">{{ s.first_name[0] }}{{ s.last_name[0] }}</div>
+                <div>
+                    <h3 class="card-title">{{ s.first_name }} {{ s.last_name }}</h3>
+                    <p class="card-subtitle">Student ID #{{ s.student_id }}</p>
                 </div>
             </div>
-            {% endfor %}
+            {% if s.room_no %}
+            <span class="pill pill-success"><i class="fa-solid fa-bed"></i> Room {{ s.room_no }}</span>
+            {% else %}
+            <span class="pill pill-warn"><i class="fa-solid fa-hourglass-half"></i> Unallocated</span>
+            {% endif %}
         </div>
-    </div>
 
-    <script>
-        function filterStudents() {
-            let input = document.getElementById('studentSearch').value.toLowerCase();
-            let cards = document.getElementsByClassName('student-card');
+        <div class="detail-list">
+            <div class="detail-row"><span><i class="fa-solid fa-envelope" style="margin-right:8px;"></i>Email</span><span class="value">{{ s.email }}</span></div>
+            <div class="detail-row"><span><i class="fa-solid fa-phone" style="margin-right:8px;"></i>Phone</span><span class="value">{{ s.phone }}</span></div>
+        </div>
 
-            for (let i = 0; i < cards.length; i++) {
-                let name = cards[i].querySelector('h3').innerText.toLowerCase();
-                let email = cards[i].querySelector('.detail-item').innerText.toLowerCase();
-                
-                if (name.includes(input) || email.includes(input)) {
-                    cards[i].style.display = "";
-                } else {
-                    cards[i].style.display = "none";
-                }
-            }
-        }
-    </script>
-</body>
-</html>
+        <div class="card-actions">
+            <a href="/edit_student/{{ s.student_id }}" class="mini-btn"><i class="fa-solid fa-pen-to-square"></i> Edit</a>
+            <a href="https://wa.me/{{ s.phone }}" target="_blank" class="mini-btn"><i class="fa-brands fa-whatsapp"></i> WhatsApp</a>
+            <a href="/delete_student/{{ s.student_id }}" class="mini-btn danger" onclick="return confirm('Delete this record?')"><i class="fa-solid fa-trash-can"></i> Delete</a>
+        </div>
+    </article>
+    {% else %}
+    <div class="empty-state premium-panel">No students found.</div>
+    {% endfor %}
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function filterStudents() {
+    let input = document.getElementById('studentSearch').value.toLowerCase();
+    let cards = document.getElementsByClassName('student-card');
+
+    for (let i = 0; i < cards.length; i++) {
+        let text = cards[i].innerText.toLowerCase();
+        cards[i].style.display = text.includes(input) ? "" : "none";
+    }
+}
+</script>
+{% endblock %}

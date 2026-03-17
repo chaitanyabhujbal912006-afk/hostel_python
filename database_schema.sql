@@ -169,7 +169,7 @@ CREATE TABLE audit_log (
     log_id INT PRIMARY KEY AUTO_INCREMENT,
     admin_id INT,
     action VARCHAR(100) NOT NULL,
-    table_name VARCHAR(50) NOT NULL, R                          
+    table_name VARCHAR(50) NOT NULL,
     record_id INT,
     old_value TEXT,
     new_value TEXT,

@@ -1,20 +1,39 @@
+import os
+
 import mysql.connector
+from werkzeug.security import generate_password_hash
 
-db = mysql.connector.connect(
-    host="localhost",
-    user="root",
-    password="shreeswamisamarth",
-    database="hostel_db"
-)
 
-cursor = db.cursor()
-cursor.execute("UPDATE admin SET password='admin123' WHERE username='admin'")
-db.commit()
+DB_CONFIG = {
+    "host": os.getenv("DB_HOST", "localhost"),
+    "user": os.getenv("DB_USER", "root"),
+    "password": os.getenv("DB_PASSWORD", "shreeswamisamarth"),
+    "database": os.getenv("DB_NAME", "hostel_db"),
+}
+USERNAME = "admin"
+NEW_PASSWORD = "admin123"
 
-print("✅ Password updated to: admin123")
-cursor.execute("SELECT username, password FROM admin")
-result = cursor.fetchone()
-print(f"✅ Username: {result[0]}")
-print(f"✅ Password: {result[1]}")
+hashed_password = generate_password_hash(NEW_PASSWORD)
 
-db.close()
+try:
+    conn = mysql.connector.connect(**DB_CONFIG)
+    cursor = conn.cursor()
+
+    cursor.execute("UPDATE admin SET password = %s WHERE username = %s", (hashed_password, USERNAME))
+
+    if cursor.rowcount == 0:
+        print(f"User '{USERNAME}' not found. No password was updated.")
+    else:
+        conn.commit()
+        print(f"Password for '{USERNAME}' was hashed and updated to '{NEW_PASSWORD}'.")
+
+    cursor.execute("SELECT username, password FROM admin WHERE username = %s", (USERNAME,))
+    result = cursor.fetchone()
+    if result:
+        print(f"Username: {result[0]}")
+        print(f"Stored Hash (first 30 chars): {result[1][:30]}...")
+
+    cursor.close()
+    conn.close()
+except mysql.connector.Error as e:
+    print(f"Database error: {e}")

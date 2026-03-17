@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Hostel Admin{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/premium.css') }}">
+    {% block head_extra %}{% endblock %}
+</head>
+<body>
+    <div class="app-shell">
+        <aside class="sidebar">
+            <div class="brand-mark">
+                <div class="brand-icon"><i class="fa-solid fa-hotel"></i></div>
+                <div>
+                    <p class="brand-overline">Residence Ops</p>
+                    <h1>Hostel Command</h1>
+                </div>
+            </div>
+
+            <nav class="nav-cluster">
+                <a href="/dashboard" class="nav-link {% if active_page == 'dashboard' %}active{% endif %}"><i class="fa-solid fa-chart-line"></i><span>Dashboard</span></a>
+                <a href="/students" class="nav-link {% if active_page == 'students' %}active{% endif %}"><i class="fa-solid fa-user-group"></i><span>Students</span></a>
+                <a href="/add_student" class="nav-link {% if active_page == 'add_student' %}active{% endif %}"><i class="fa-solid fa-user-plus"></i><span>Add Student</span></a>
+                <a href="/rooms" class="nav-link {% if active_page == 'rooms' %}active{% endif %}"><i class="fa-solid fa-door-open"></i><span>Rooms</span></a>
+                <a href="/add_room" class="nav-link {% if active_page == 'add_room' %}active{% endif %}"><i class="fa-solid fa-plus-square"></i><span>Add Room</span></a>
+                <a href="/expenses" class="nav-link {% if active_page == 'expenses' %}active{% endif %}"><i class="fa-solid fa-wallet"></i><span>Expenses</span></a>
+                <a href="/add_expense" class="nav-link {% if active_page == 'add_expense' %}active{% endif %}"><i class="fa-solid fa-file-invoice-dollar"></i><span>Add Expense</span></a>
+                <a href="/allocate" class="nav-link {% if active_page == 'allocate' %}active{% endif %}"><i class="fa-solid fa-key"></i><span>Allocate Room</span></a>
+                <a href="/allocations" class="nav-link {% if active_page == 'allocations' %}active{% endif %}"><i class="fa-solid fa-list"></i><span>Allocations</span></a>
+                <a href="/add_rent" class="nav-link {% if active_page == 'add_rent' %}active{% endif %}"><i class="fa-solid fa-plus"></i><span>Add Rent</span></a>
+                <a href="/rents" class="nav-link {% if active_page == 'rents' %}active{% endif %}"><i class="fa-solid fa-money-bill"></i><span>Rent Records</span></a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="status-chip"><span class="status-dot"></span>System Online</div>
+            </div>
+        </aside>
+
+        <main class="page-shell">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

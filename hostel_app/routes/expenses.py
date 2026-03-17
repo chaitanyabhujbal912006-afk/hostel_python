@@ -2,7 +2,6 @@ from datetime import datetime
 
 from flask import Blueprint, redirect, render_template, request, session
 
-from hostel_app.auth import login_required
 from hostel_app.db import get_db_connection
 
 
@@ -10,7 +9,6 @@ expenses_bp = Blueprint("expenses", __name__)
 
 
 @expenses_bp.route("/add_expense", methods=["GET", "POST"])
-@login_required
 def add_expense():
     if request.method == "POST":
         try:
@@ -21,7 +19,7 @@ def add_expense():
             payment_method = request.form.get("payment_method", "Cash")
 
             if not expense_type or not amount:
-                return render_template("add_expense.html", error="Expense type and amount required")
+                return render_template("add_expense.html", error="Expense type and amount required", active_page="add_expense")
 
             db, cursor = get_db_connection()
             cursor.execute(
@@ -29,19 +27,18 @@ def add_expense():
                 INSERT INTO expenses (expense_type, amount, expense_date, description, payment_method, approved_by, status)
                 VALUES (%s, %s, %s, %s, %s, %s, 'Approved')
                 """,
-                (expense_type, float(amount), expense_date, description, payment_method, session.get("admin_id")),
+                (expense_type, float(amount), expense_date, description, payment_method, None),
             )
             db.commit()
             return redirect("/expenses")
         except Exception as err:
             print(f"Error adding expense: {err}")
-            return render_template("add_expense.html", error=f"Error adding expense: {err}")
+            return render_template("add_expense.html", error=f"Error adding expense: {err}", active_page="add_expense")
 
-    return render_template("add_expense.html")
+    return render_template("add_expense.html", active_page="add_expense")
 
 
 @expenses_bp.route("/expenses")
-@login_required
 def expenses():
     try:
         _, cursor = get_db_connection()
@@ -52,14 +49,13 @@ def expenses():
             """
         )
         data = cursor.fetchall()
-        return render_template("expenses.html", expenses=data)
+        return render_template("expenses.html", expenses=data, active_page="expenses")
     except Exception as err:
         print(f"Error: {err}")
-        return render_template("expenses.html", expenses=[], error="Error loading expenses")
+        return render_template("expenses.html", expenses=[], error="Error loading expenses", active_page="expenses")
 
 
 @expenses_bp.route("/edit_expense/<int:expense_id>", methods=["GET", "POST"])
-@login_required
 def edit_expense(expense_id):
     db, cursor = get_db_connection()
     try:
@@ -97,7 +93,6 @@ def edit_expense(expense_id):
 
 
 @expenses_bp.route("/delete_expense/<int:expense_id>", methods=["POST"])
-@login_required
 def delete_expense(expense_id):
     db, cursor = get_db_connection()
     try:

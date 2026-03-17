@@ -1,11 +1,13 @@
+import os
+
 import mysql.connector
 
 
 DB_CONFIG = {
-    "host": "localhost",
-    "user": "root",
-    "password": "shreeswamisamarth",
-    "database": "hostel_db",
+    "host": os.getenv("DB_HOST", "localhost"),
+    "user": os.getenv("DB_USER", "root"),
+    "password": os.getenv("DB_PASSWORD", "shreeswamisamarth"),
+    "database": os.getenv("DB_NAME", "hostel_db"),
 }
 
 db = None
@@ -17,6 +19,8 @@ def get_db_connection():
     try:
         if db is None or not db.is_connected():
             db = mysql.connector.connect(**DB_CONFIG)
+            cursor = db.cursor(dictionary=True)
+        elif cursor is None:
             cursor = db.cursor(dictionary=True)
         return db, cursor
     except mysql.connector.Error as err:
@@ -36,10 +40,21 @@ def get_fresh_cursor():
         return None
 
 
-def init_db():
+def close_db(_error=None):
     global db, cursor
     try:
-        db, cursor = get_db_connection()
-        print("Database connected successfully")
-    except Exception as err:
-        print(f"Database connection failed: {err}")
+        if cursor is not None:
+            cursor.close()
+    except Exception:
+        pass
+    try:
+        if db is not None and db.is_connected():
+            db.close()
+    except Exception:
+        pass
+    cursor = None
+    db = None
+
+
+def init_app(app):
+    app.teardown_appcontext(close_db)
