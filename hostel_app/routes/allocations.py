@@ -18,10 +18,15 @@ def allocate():
             if not student_id or not room_id:
                 return render_template("allocate.html", students=[], rooms=[], error="Student and room are required", active_page="allocate")
 
-            cursor.execute("SELECT capacity, occupied FROM room WHERE room_id=%s", (room_id,))
+            cursor.execute("SELECT capacity FROM room WHERE room_id=%s", (room_id,))
             room = cursor.fetchone()
             if not room:
                 return render_allocate_form("Room not found")
+
+            # Check current occupancy by counting active allocations
+            cursor.execute("SELECT COUNT(*) as current_occupied FROM allocation WHERE room_id=%s AND status='Active'", (room_id,))
+            occupancy = cursor.fetchone()
+            current_occupied = occupancy["current_occupied"] if occupancy else 0
 
             cursor.execute("SELECT allocation_id, room_id FROM allocation WHERE student_id=%s", (student_id,))
             existing_allocation = cursor.fetchone()
@@ -30,7 +35,7 @@ def allocate():
                 if existing_allocation["room_id"] == room_id:
                     return redirect("/allocations")
 
-                if room["occupied"] >= room["capacity"]:
+                if current_occupied >= room["capacity"]:
                     return render_allocate_form("Room is full. Cannot allocate.")
 
                 old_room_id = existing_allocation["room_id"]
@@ -44,7 +49,7 @@ def allocate():
                     (room_id, existing_allocation["allocation_id"]),
                 )
             else:
-                if room["occupied"] >= room["capacity"]:
+                if current_occupied >= room["capacity"]:
                     return render_allocate_form("Room is full. Cannot allocate.")
 
                 cursor.execute(
@@ -109,11 +114,16 @@ def edit_allocation(allocation_id):
         old_room_id = current["room_id"]
 
         if old_room_id != int(new_room_id):
-            cursor.execute("SELECT capacity, occupied FROM room WHERE room_id=%s", (new_room_id,))
+            # Check if new room has capacity by counting active allocations
+            cursor.execute("SELECT COUNT(*) as current_occupied FROM allocation WHERE room_id=%s AND status='Active'", (new_room_id,))
+            occupancy = cursor.fetchone()
+            current_occupied = occupancy["current_occupied"] if occupancy else 0
+            
+            cursor.execute("SELECT capacity FROM room WHERE room_id=%s", (new_room_id,))
             new_room = cursor.fetchone()
             if not new_room:
                 return redirect("/allocations")
-            if new_room["occupied"] >= new_room["capacity"]:
+            if current_occupied >= new_room["capacity"]:
                 cursor.execute(
                     """
                     SELECT a.allocation_id, a.student_id, s.first_name, s.last_name, a.room_id
@@ -180,10 +190,13 @@ def render_allocate_form(error=None):
         students = cursor.fetchall()
         cursor.execute(
             """
-            SELECT room_id, room_no, capacity, occupied
-            FROM room
-            WHERE status != 'Maintenance' AND occupied < capacity
-            ORDER BY room_no
+            SELECT r.room_id, r.room_no, r.capacity, COUNT(a.allocation_id) as occupied
+            FROM room r
+            LEFT JOIN allocation a ON r.room_id = a.room_id AND a.status = 'Active'
+            WHERE r.status != 'Maintenance'
+            GROUP BY r.room_id
+            HAVING COUNT(a.allocation_id) < r.capacity
+            ORDER BY r.room_no
             """
         )
         rooms = cursor.fetchall()

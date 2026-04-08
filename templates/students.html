@@ -1,19 +1,20 @@
 {% extends "base.html" %}
 
-{% block title %}Hostel Command | Students{% endblock %}
+{% block title %}DESPU Hostel | Students{% endblock %}
 
 {% block content %}
 <section class="page-top">
     <div>
-        <p class="page-kicker">Resident Directory</p>
-        <h2 class="page-title">Students with a sharper operational view.</h2>
-        <p class="page-subtitle">Cleaner identity cards, faster scanability, and a more premium presentation for occupancy and contact data.</p>
+        <h2 class="page-title">Student Details</h2>
     </div>
-    <div class="search-shell">
+</section>
+
+<div class="search-row" style="margin-bottom: 28px;">
+    <div class="wide-search-shell">
         <i class="fa-solid fa-magnifying-glass"></i>
         <input type="text" id="studentSearch" placeholder="Search by name or email..." onkeyup="filterStudents()">
     </div>
-</section>
+</div>
 
 <section class="student-grid" id="studentGrid">
     {% for s in students %}
@@ -36,11 +37,28 @@
         <div class="detail-list">
             <div class="detail-row"><span><i class="fa-solid fa-envelope" style="margin-right:8px;"></i>Email</span><span class="value">{{ s.email }}</span></div>
             <div class="detail-row"><span><i class="fa-solid fa-phone" style="margin-right:8px;"></i>Phone</span><span class="value">{{ s.phone }}</span></div>
+            {% if s.date_of_birth %}
+            <div class="detail-row"><span><i class="fa-solid fa-calendar" style="margin-right:8px;"></i>DOB</span><span class="value">{{ s.date_of_birth.strftime('%d/%m/%Y') if s.date_of_birth else '' }}</span></div>
+            {% endif %}
+            {% if s.enrollment_date %}
+            <div class="detail-row"><span><i class="fa-solid fa-calendar-check" style="margin-right:8px;"></i>Enrolled</span><span class="value">{{ s.enrollment_date.strftime('%d/%m/%Y') if s.enrollment_date else '' }}</span></div>
+            {% endif %}
+            {% if s.guardian_name %}
+            <div class="detail-row"><span><i class="fa-solid fa-user-shield" style="margin-right:8px;"></i>Guardian</span><span class="value">{{ s.guardian_name }}</span></div>
+            {% endif %}
+            {% if s.guardian_phone %}
+            <div class="detail-row"><span><i class="fa-solid fa-phone" style="margin-right:8px;"></i>Guardian Phone</span><span class="value">{{ s.guardian_phone }}</span></div>
+            {% endif %}
+            {% if s.address %}
+            <div class="detail-row"><span><i class="fa-solid fa-map-marker-alt" style="margin-right:8px;"></i>Address</span><span class="value">{{ s.address }}{% if s.city %}, {{ s.city }}{% endif %}{% if s.state %}, {{ s.state }}{% endif %}</span></div>
+            {% endif %}
+            <div class="detail-row"><span><i class="fa-solid fa-info-circle" style="margin-right:8px;"></i>Status</span><span class="value">{{ s.status }}</span></div>
         </div>
 
         <div class="card-actions">
             <a href="/edit_student/{{ s.student_id }}" class="mini-btn"><i class="fa-solid fa-pen-to-square"></i> Edit</a>
-            <a href="https://wa.me/{{ s.phone }}" target="_blank" class="mini-btn"><i class="fa-brands fa-whatsapp"></i> WhatsApp</a>
+            <a href="https://wa.me/{{ s.phone }}" target="_blank" class="mini-btn"><i class="fa-brands fa-whatsapp"></i></a>
+            <a href="https://mail.google.com/mail/?view=cm&to={{ s.email|urlencode }}" target="_blank" class="mini-btn"><i class="fa-solid fa-envelope"></i></a>
             <a href="/delete_student/{{ s.student_id }}" class="mini-btn danger" onclick="return confirm('Delete this record?')"><i class="fa-solid fa-trash-can"></i> Delete</a>
         </div>
     </article>

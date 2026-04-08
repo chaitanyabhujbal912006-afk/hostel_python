@@ -1,4 +1,5 @@
 import os
+import sys
 
 import mysql.connector
 from werkzeug.security import generate_password_hash
@@ -7,11 +8,15 @@ from werkzeug.security import generate_password_hash
 DB_CONFIG = {
     "host": os.getenv("DB_HOST", "localhost"),
     "user": os.getenv("DB_USER", "root"),
-    "password": os.getenv("DB_PASSWORD", "shreeswamisamarth"),
+    "password": os.getenv("DB_PASSWORD", ""),
     "database": os.getenv("DB_NAME", "hostel_db"),
 }
-USERNAME = "admin"
-NEW_PASSWORD = "admin123"
+USERNAME = os.getenv("ADMIN_USERNAME", "admin")
+NEW_PASSWORD = os.getenv("ADMIN_NEW_PASSWORD")
+
+if not NEW_PASSWORD:
+    print("Set ADMIN_NEW_PASSWORD env var before running this script.")
+    sys.exit(1)
 
 hashed_password = generate_password_hash(NEW_PASSWORD)
 

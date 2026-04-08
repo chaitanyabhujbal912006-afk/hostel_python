@@ -1,13 +1,11 @@
 {% extends "base.html" %}
 
-{% block title %}Hostel Command | Add Student{% endblock %}
+{% block title %}DESPU Hostel | Add Student{% endblock %}
 
 {% block content %}
 <section class="page-top">
     <div>
-        <p class="page-kicker">Resident Onboarding</p>
-        <h2 class="page-title">Add students with a cleaner premium form.</h2>
-        <p class="page-subtitle">A more polished intake screen with consistent spacing, stronger hierarchy, and better visual clarity.</p>
+        <h2 class="page-title">Add Students</h2>
     </div>
     <a href="/students" class="ghost-btn"><i class="fa-solid fa-arrow-left"></i> Back to Students</a>
 </section>
@@ -18,39 +16,61 @@
     {% endif %}
 
     <form method="post">
+        <!-- Personal Information Section -->
+        <h3 style="margin-top: 0; margin-bottom: 1.5rem; color: #5eb6ff;">Personal Information</h3>
+        
         <div class="form-grid">
             <div class="field">
-                <label for="first_name">First Name</label>
+                <label for="first_name">First Name <span style="color: #ff6b6b;">*</span></label>
                 <div class="field-control">
                     <input id="first_name" type="text" name="first_name" placeholder="John" required>
                 </div>
             </div>
 
             <div class="field">
-                <label for="last_name">Last Name</label>
+                <label for="last_name">Last Name <span style="color: #ff6b6b;">*</span></label>
                 <div class="field-control">
                     <input id="last_name" type="text" name="last_name" placeholder="Doe" required>
                 </div>
             </div>
 
             <div class="field">
-                <label for="email">Email</label>
+                <label for="email">Email <span style="color: #ff6b6b;">*</span></label>
                 <div class="field-control">
                     <input id="email" type="email" name="email" placeholder="john@example.com" required>
                 </div>
             </div>
 
             <div class="field">
-                <label for="phone">Phone</label>
+                <label for="phone">Phone <span style="color: #ff6b6b;">*</span></label>
                 <div class="field-control">
                     <input id="phone" type="text" name="phone" placeholder="+1234567890" required>
                 </div>
             </div>
 
             <div class="field">
+                <label for="date_of_birth">Date of Birth</label>
+                <div class="field-control">
+                    <input id="date_of_birth" type="date" name="date_of_birth">
+                </div>
+            </div>
+
+            <div class="field">
+                <label for="enrollment_date">Enrollment Date<span style="color: #ff6b6b;">*</span></label>
+                <div class="field-control">
+                    <input id="enrollment_date" type="date" name="enrollment_date" required>
+                </div>
+            </div>
+        </div>
+
+        <!-- Guardian Information Section -->
+        <h3 style="margin-top: 2rem; margin-bottom: 1.5rem; color: #5eb6ff;">Guardian Information</h3>
+        
+        <div class="form-grid">
+            <div class="field">
                 <label for="guardian_name">Guardian Name</label>
                 <div class="field-control">
-                    <input id="guardian_name" type="text" name="guardian_name" placeholder="Parent or guardian">
+                    <input id="guardian_name" type="text" name="guardian_name" placeholder="Parent or guardian name">
                 </div>
             </div>
 
@@ -62,10 +82,67 @@
             </div>
         </div>
 
-        <div class="form-actions">
+        <!-- Address Information Section -->
+        <h3 style="margin-top: 2rem; margin-bottom: 1.5rem; color: #5eb6ff;">Address Information</h3>
+        
+        <div class="form-grid">
+            <div class="field" style="grid-column: 1 / -1;">
+                <label for="address">Address</label>
+                <div class="field-control">
+                    <textarea id="address" name="address" placeholder="Street address" rows="3"></textarea>
+                </div>
+            </div>
+
+            <div class="field">
+                <label for="city">City</label>
+                <div class="field-control">
+                    <input id="city" type="text" name="city" placeholder="City name">
+                </div>
+            </div>
+
+            <div class="field">
+                <label for="state">State/Province</label>
+                <div class="field-control">
+                    <input id="state" type="text" name="state" placeholder="State name">
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Section -->
+        <h3 style="margin-top: 2rem; margin-bottom: 1.5rem; color: #5eb6ff;">Status</h3>
+        
+        <div class="form-grid">
+            <div class="field">
+                <label for="status">Status <span style="color: #ff6b6b;">*</span></label>
+                <div class="field-control">
+                    <select id="status" name="status" required style="padding: 0.75rem; border-radius: 6px; border: 1px solid #5eb6ff; background: rgba(94, 182, 255, 0.1); color: #fff; font-family: inherit;">
+                        <option value="Active" selected>Active</option>
+                        <option value="Inactive">Inactive</option>
+                        <option value="Left">Left</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-actions" style="margin-top: 2.5rem;">
             <button type="submit" class="primary-btn"><i class="fa-solid fa-check"></i> Add Student</button>
             <a href="/students" class="ghost-btn"><i class="fa-solid fa-xmark"></i> Cancel</a>
         </div>
     </form>
 </section>
+
+<style>
+    textarea {
+        background: rgba(94, 182, 255, 0.05);
+        border: 1px solid #5eb6ff;
+        color: #fff;
+        padding: 0.75rem;
+        border-radius: 6px;
+        font-family: inherit;
+        resize: vertical;
+    }
+    textarea::placeholder {
+        color: rgba(255, 255, 255, 0.5);
+    }
+</style>
 {% endblock %}

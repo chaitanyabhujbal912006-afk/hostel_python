@@ -1,3 +1,5 @@
+import os
+
 from flask import Flask
 
 from . import db
@@ -11,7 +13,7 @@ from .routes.students import students_bp
 
 def create_app():
     app = Flask(__name__, template_folder="../templates", static_folder="../static")
-    app.secret_key = "your_secure_secret_key_here_change_this"
+    app.secret_key = os.getenv("FLASK_SECRET_KEY", "dev-secret-change-me")
 
     db.init_app(app)
 

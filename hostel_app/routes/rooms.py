@@ -43,8 +43,11 @@ def rooms():
         _, cursor = get_db_connection()
         cursor.execute(
             """
-            SELECT * FROM room
-            ORDER BY room_no ASC
+            SELECT r.*, COUNT(a.allocation_id) as occupied
+            FROM room r
+            LEFT JOIN allocation a ON r.room_id = a.room_id AND a.status = 'Active'
+            GROUP BY r.room_id
+            ORDER BY r.room_no ASC
             """
         )
         data = cursor.fetchall()

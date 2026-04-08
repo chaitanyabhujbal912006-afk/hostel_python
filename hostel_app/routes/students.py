@@ -14,19 +14,29 @@ def add_student():
             last_name = request.form.get("last_name", "").strip()
             email = request.form.get("email", "").strip()
             phone = request.form.get("phone", "").strip()
+            date_of_birth = request.form.get("date_of_birth", "").strip()
+            enrollment_date = request.form.get("enrollment_date", "").strip()
             guardian_name = request.form.get("guardian_name", "").strip()
             guardian_phone = request.form.get("guardian_phone", "").strip()
+            address = request.form.get("address", "").strip()
+            city = request.form.get("city", "").strip()
+            state = request.form.get("state", "").strip()
+            status = request.form.get("status", "Active").strip()
 
-            if not all([first_name, last_name, email, phone]):
-                return render_template("add_student.html", error="All fields required", active_page="add_student")
+            # Validate required fields
+            if not all([first_name, last_name, email, phone, enrollment_date]):
+                return render_template("add_student.html", error="First Name, Last Name, Email, Phone, and Enrollment Date are required", active_page="add_student")
 
             db, cursor = get_db_connection()
             cursor.execute(
                 """
-                INSERT INTO student (first_name, last_name, email, phone, guardian_name, guardian_phone, status)
-                VALUES (%s, %s, %s, %s, %s, %s, 'Active')
+                INSERT INTO student (first_name, last_name, email, phone, date_of_birth, 
+                                    enrollment_date, guardian_name, guardian_phone, 
+                                    address, city, state, status)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                 """,
-                (first_name, last_name, email, phone, guardian_name, guardian_phone),
+                (first_name, last_name, email, phone, date_of_birth if date_of_birth else None, 
+                 enrollment_date, guardian_name, guardian_phone, address, city, state, status),
             )
             db.commit()
             return redirect("/students")
@@ -34,7 +44,7 @@ def add_student():
             print(f"Error adding student: {err}")
             if "UNIQUE" in str(err) or "unique" in str(err):
                 return render_template("add_student.html", error="Email or phone already exists", active_page="add_student")
-            return render_template("add_student.html", error="Error adding student", active_page="add_student")
+            return render_template("add_student.html", error=f"Error adding student: {str(err)}", active_page="add_student")
 
     return render_template("add_student.html", active_page="add_student")
 
@@ -69,36 +79,37 @@ def edit_student(student_id):
         last_name = request.form.get("last_name", "").strip()
         email = request.form.get("email", "").strip()
         phone = request.form.get("phone", "").strip()
+        date_of_birth = request.form.get("date_of_birth", "").strip()
+        enrollment_date = request.form.get("enrollment_date", "").strip()
+        guardian_name = request.form.get("guardian_name", "").strip()
+        guardian_phone = request.form.get("guardian_phone", "").strip()
+        address = request.form.get("address", "").strip()
+        city = request.form.get("city", "").strip()
+        state = request.form.get("state", "").strip()
+        status = request.form.get("status", "Active").strip()
 
-        if not all([first_name, last_name, email, phone]):
-            student = {
-                "student_id": student_id,
-                "first_name": first_name,
-                "last_name": last_name,
-                "email": email,
-                "phone": phone,
-            }
-            return render_template("edit_student.html", student=student, error="All fields required")
+        if not all([first_name, last_name, email, phone, enrollment_date]):
+            cursor.execute("SELECT * FROM student WHERE student_id=%s", (student_id,))
+            student = cursor.fetchone()
+            return render_template("edit_student.html", student=student, error="First Name, Last Name, Email, Phone, and Enrollment Date are required")
 
         try:
             cursor.execute(
                 """
                 UPDATE student
-                SET first_name=%s, last_name=%s, email=%s, phone=%s
+                SET first_name=%s, last_name=%s, email=%s, phone=%s, date_of_birth=%s,
+                    enrollment_date=%s, guardian_name=%s, guardian_phone=%s, 
+                    address=%s, city=%s, state=%s, status=%s
                 WHERE student_id=%s
                 """,
-                (first_name, last_name, email, phone, student_id),
+                (first_name, last_name, email, phone, date_of_birth if date_of_birth else None,
+                 enrollment_date, guardian_name, guardian_phone, address, city, state, status, student_id),
             )
             db.commit()
             return redirect("/students")
         except Exception as err:
-            student = {
-                "student_id": student_id,
-                "first_name": first_name,
-                "last_name": last_name,
-                "email": email,
-                "phone": phone,
-            }
+            cursor.execute("SELECT * FROM student WHERE student_id=%s", (student_id,))
+            student = cursor.fetchone()
             db.rollback()
             if "UNIQUE" in str(err).upper():
                 return render_template("edit_student.html", student=student, error="Email or phone already exists")
@@ -115,10 +126,33 @@ def edit_student(student_id):
 def delete_student(student_id):
     db, cursor = get_db_connection()
     try:
+        # First, find the room_id that the student is allocated to
+        cursor.execute(
+            "SELECT room_id FROM allocation WHERE student_id=%s AND status='Active'",
+            (student_id,)
+        )
+        allocation = cursor.fetchone()
+        
+        # If student has an active allocation, decrement room occupancy
+        if allocation:
+            room_id = allocation["room_id"]
+            cursor.execute(
+                "UPDATE room SET occupied = occupied - 1 WHERE room_id=%s AND occupied > 0",
+                (room_id,)
+            )
+            # Update status to Available if it was Full
+            cursor.execute(
+                "UPDATE room SET status = 'Available' WHERE room_id=%s AND occupied < capacity AND status = 'Full'",
+                (room_id,)
+            )
+        
+        # Delete related records
         cursor.execute("DELETE FROM rent WHERE student_id=%s", (student_id,))
         cursor.execute("DELETE FROM allocation WHERE student_id=%s", (student_id,))
         cursor.execute("DELETE FROM student WHERE student_id=%s", (student_id,))
+        
         db.commit()
-    except Exception:
+    except Exception as err:
+        print(f"Error deleting student: {err}")
         db.rollback()
     return redirect("/students")

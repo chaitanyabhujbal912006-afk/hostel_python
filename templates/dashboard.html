@@ -1,21 +1,116 @@
 {% extends "base.html" %}
 
-{% block title %}Hostel Command | Dashboard{% endblock %}
+{% block title %}DESPU Hostel | Dashboard{% endblock %}
 
 {% block head_extra %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    .filter-bar {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        padding: 1rem;
+        background: rgba(91, 165, 255, 0.05);
+        border-radius: 8px;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+    .filter-bar input {
+        padding: 0.5rem 1rem;
+        border: 1px solid #5eb6ff;
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.05);
+        color: #fff;
+        font-size: 0.9rem;
+    }
+    .filter-bar input::placeholder {
+        color: rgba(255, 255, 255, 0.5);
+    }
+    .filter-bar button {
+        padding: 0.5rem 1.5rem;
+        background: #5eb6ff;
+        color: #fff;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+    .filter-bar button:hover {
+        background: #4a9fff;
+        transform: translateY(-2px);
+    }
+    .refresh-indicator {
+        margin-left: auto;
+        font-size: 0.85rem;
+        color: #6af3d6;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .refresh-indicator.loading {
+        animation: pulse 1s infinite;
+    }
+    .date-chip {
+        font-size: 1rem;
+        padding: 10px 14px;
+    }
+    .data-table-wrap {
+        overflow-x: auto;
+    }
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .data-table th,
+    .data-table td {
+        padding: 10px 12px;
+        border-bottom: 1px solid rgba(145, 168, 193, 0.16);
+        text-align: left;
+        white-space: nowrap;
+    }
+    .data-table th {
+        color: #91a8c1;
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+    }
+    .data-table td {
+        color: #f4f7fb;
+        font-size: 0.92rem;
+    }
+    .table-empty {
+        color: #91a8c1;
+        padding: 12px;
+    }
+    @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+</style>
 {% endblock %}
 
 {% block content %}
 <section class="page-top">
     <div>
-        <p class="page-kicker">Command Center</p>
-        <h2 class="page-title">Premium hostel operations at a glance.</h2>
-        <p class="page-subtitle">A cleaner executive view of students, occupancy, cash movement, and collection efficiency.</p>
+        <h2 class="page-title">Dashboard</h2>
     </div>
-    <div class="hero-chip">
+    <div class="date-chip">
         <i class="fa-regular fa-calendar"></i>
-        <span>{{ current_date }}</span>
+        <span id="current-date">{{ current_date }}</span>
+    </div>
+</section>
+
+<!-- Filter Bar -->
+<section class="filter-bar">
+    <label>Date Range:</label>
+    <input type="date" id="start-date" placeholder="Start Date">
+    <input type="date" id="end-date" placeholder="End Date">
+    <button onclick="applyDateFilter()"><i class="fa-solid fa-filter"></i> Apply Filter</button>
+    <button onclick="resetDateFilter()"><i class="fa-solid fa-undo"></i> Reset</button>
+    <div class="refresh-indicator">
+        <i class="fa-solid fa-arrows-rotate"></i>
+        <span>Auto-refresh: <strong>30s</strong></span>
     </div>
 </section>
 
@@ -24,7 +119,7 @@
         <div class="card-top">
             <div>
                 <div class="metric-label">Students</div>
-                <div class="metric-value">{{ students }}</div>
+                <div class="metric-value" id="metric-students">{{ students }}</div>
                 <div class="metric-meta"><i class="fa-solid fa-circle-nodes"></i> Live directory volume</div>
             </div>
             <div class="icon-tile"><i class="fa-solid fa-users"></i></div>
@@ -33,18 +128,18 @@
     <article class="metric-card premium-panel">
         <div class="card-top">
             <div>
-                <div class="metric-label">Rooms</div>
-                <div class="metric-value">{{ rooms }}</div>
-                <div class="metric-meta"><i class="fa-solid fa-bed"></i> Inventory under management</div>
+                <div class="metric-label">Occupancy</div>
+                <div class="metric-value" id="metric-occupancy">{{ occupancy_percentage }}%</div>
+                <div class="metric-meta"><i class="fa-solid fa-percentage"></i> <span id="occupancy-detail">{{ total_occupied }}/{{ total_capacity }} rooms</span></div>
             </div>
-            <div class="icon-tile"><i class="fa-solid fa-door-open"></i></div>
+            <div class="icon-tile"><i class="fa-solid fa-bed"></i></div>
         </div>
     </article>
     <article class="metric-card premium-panel">
         <div class="card-top">
             <div>
                 <div class="metric-label">Expenses</div>
-                <div class="metric-value">Rs. {{ expense }}</div>
+                <div class="metric-value" id="metric-expense">Rs. {{ expense }}</div>
                 <div class="metric-meta"><i class="fa-solid fa-wave-square"></i> Total outgoing tracked</div>
             </div>
             <div class="icon-tile"><i class="fa-solid fa-indian-rupee-sign"></i></div>
@@ -53,11 +148,55 @@
     <article class="metric-card premium-panel">
         <div class="card-top">
             <div>
-                <div class="metric-label">Collection</div>
-                <div class="metric-value">{{ rent_collection_percentage }}%</div>
+                <div class="metric-label">Collections</div>
+                <div class="metric-value" id="metric-collection">{{ rent_collection_percentage }}%</div>
                 <div class="metric-meta"><i class="fa-solid fa-arrow-trend-up"></i> Rent performance</div>
             </div>
             <div class="icon-tile"><i class="fa-solid fa-money-bill-trend-up"></i></div>
+        </div>
+    </article>
+</section>
+
+<!-- Secondary Metrics -->
+<section class="metric-grid">
+    <article class="metric-card premium-panel">
+        <div class="card-top">
+            <div>
+                <div class="metric-label">Collected</div>
+                <div class="metric-value" id="metric-collected">Rs. {{ rent_collected }}</div>
+                <div class="metric-meta"><i class="fa-solid fa-check-circle"></i> <span id="collected-detail">{{ total_paid_rent }} entries</span></div>
+            </div>
+            <div class="icon-tile"><i class="fa-solid fa-circle-check"></i></div>
+        </div>
+    </article>
+    <article class="metric-card premium-panel">
+        <div class="card-top">
+            <div>
+                <div class="metric-label">Pending</div>
+                <div class="metric-value" id="metric-pending">Rs. {{ rent_pending }}</div>
+                <div class="metric-meta"><i class="fa-solid fa-hourglass"></i> <span id="pending-detail">{{ total_unpaid_rent }} entries</span></div>
+            </div>
+            <div class="icon-tile"><i class="fa-solid fa-hourglass-end"></i></div>
+        </div>
+    </article>
+    <article class="metric-card premium-panel">
+        <div class="card-top">
+            <div>
+                <div class="metric-label">Rooms</div>
+                <div class="metric-value" id="metric-rooms">{{ rooms }}</div>
+                <div class="metric-meta"><i class="fa-solid fa-door-open"></i> Inventory under management</div>
+            </div>
+            <div class="icon-tile"><i class="fa-solid fa-door-closed"></i></div>
+        </div>
+    </article>
+    <article class="metric-card premium-panel">
+        <div class="card-top">
+            <div>
+                <div class="metric-label">Available</div>
+                <div class="metric-value" id="metric-available">{{ total_available }}</div>
+                <div class="metric-meta"><i class="fa-solid fa-chair"></i> Empty slots</div>
+            </div>
+            <div class="icon-tile"><i class="fa-solid fa-couch"></i></div>
         </div>
     </article>
 </section>
@@ -100,90 +239,454 @@
             </div>
             <div class="insight-list">
                 <div class="insight-item">
-                    <div class="detail-row"><span>Paid rent value</span><strong>Rs. {{ rent_collected }}</strong></div>
+                    <div class="detail-row"><span>Paid rent value</span><strong id="snapshot-paid">Rs. {{ rent_collected }}</strong></div>
                 </div>
                 <div class="insight-item">
-                    <div class="detail-row"><span>Paid entries</span><strong>{{ total_paid_rent }}</strong></div>
+                    <div class="detail-row"><span>Pending value</span><strong id="snapshot-pending">Rs. {{ rent_pending }}</strong></div>
                 </div>
                 <div class="insight-item">
-                    <div class="detail-row"><span>Unpaid entries</span><strong>{{ total_unpaid_rent }}</strong></div>
+                    <div class="detail-row"><span>Occupancy rate</span><strong id="snapshot-occupancy">{{ occupancy_percentage }}%</strong></div>
                 </div>
             </div>
         </article>
     </div>
 </section>
+
+<section class="two-column">
+    <article class="chart-panel premium-panel">
+        <div class="panel-header">
+            <div>
+                <h3 class="panel-title">Monthly Finance Trend</h3>
+                <p class="panel-subtitle">Rent collected vs expense spend for recent months.</p>
+            </div>
+        </div>
+        <div class="chart-wrapper">
+            <canvas id="financeTrendChart"></canvas>
+        </div>
+    </article>
+
+    <article class="chart-panel premium-panel">
+        <div class="panel-header">
+            <div>
+                <h3 class="panel-title">Rent Status Distribution</h3>
+                <p class="panel-subtitle">Current status mix of rent records.</p>
+            </div>
+        </div>
+        <div class="chart-wrapper">
+            <canvas id="rentStatusChart"></canvas>
+        </div>
+    </article>
+</section>
+
+<section class="two-column">
+    <article class="list-panel premium-panel">
+        <div class="panel-header">
+            <div>
+                <h3 class="panel-title">Pending Dues</h3>
+                <p class="panel-subtitle">Nearest due and overdue rent entries.</p>
+            </div>
+        </div>
+        <div class="data-table-wrap">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Student</th>
+                        <th>Room</th>
+                        <th>Due Date</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="pending-dues-body">
+                    <tr><td colspan="5" class="table-empty">No pending dues found.</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </article>
+
+    <article class="list-panel premium-panel">
+        <div class="panel-header">
+            <div>
+                <h3 class="panel-title">Expense Categories</h3>
+                <p class="panel-subtitle">Top categories by total spend.</p>
+            </div>
+        </div>
+        <div class="data-table-wrap">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Category</th>
+                        <th>Entries</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody id="expense-category-body">
+                    <tr><td colspan="3" class="table-empty">No expense data found.</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </article>
+</section>
 {% endblock %}
 
 {% block scripts %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const expenseLabels = [{% for e in expense_data %}"{{ e.expense_date }}"{% if not loop.last %},{% endif %}{% endfor %}];
-    const expenseValues = [{% for e in expense_data %}{{ e.total }}{% if not loop.last %},{% endif %}{% endfor %}];
-    const occupancyLabels = ['Occupied', 'Available'];
-    const occupancyValues = [{{ total_occupied }}, {{ total_available }}];
+let expenseChart = null;
+let roomChart = null;
+let rentStatusChart = null;
+let financeTrendChart = null;
+let autoRefreshInterval = null;
 
+function initCharts(data) {
+    console.log('Initializing charts with data:', data);
+    
     const chartColors = {
         blue: '#5eb6ff',
         cyan: '#6af3d6',
         gold: '#ffcb6b',
         slate: '#91a8c1'
     };
-
     const textColor = '#91a8c1';
     const gridColor = 'rgba(145, 168, 193, 0.14)';
 
+    // Expense Chart
     if (document.getElementById('expenseChart')) {
-        const expenseCtx = document.getElementById('expenseChart').getContext('2d');
-        const gradient = expenseCtx.createLinearGradient(0, 0, 0, 340);
-        gradient.addColorStop(0, 'rgba(94, 182, 255, 0.35)');
-        gradient.addColorStop(1, 'rgba(94, 182, 255, 0.01)');
+        try {
+            const expenseCtx = document.getElementById('expenseChart').getContext('2d');
+            const gradient = expenseCtx.createLinearGradient(0, 0, 0, 340);
+            gradient.addColorStop(0, 'rgba(94, 182, 255, 0.35)');
+            gradient.addColorStop(1, 'rgba(94, 182, 255, 0.01)');
 
-        new Chart(expenseCtx, {
-            type: 'line',
-            data: {
-                labels: expenseLabels,
-                datasets: [{
-                    label: 'Expenses (Rs.)',
-                    data: expenseValues,
-                    borderColor: chartColors.blue,
-                    backgroundColor: gradient,
-                    borderWidth: 3,
-                    fill: true,
-                    tension: 0.4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { labels: { color: textColor } } },
-                scales: {
-                    y: { beginAtZero: true, grid: { color: gridColor }, ticks: { color: textColor } },
-                    x: { grid: { display: false }, ticks: { color: textColor } }
+            const expenseLabels = data.expense_data && data.expense_data.length > 0 
+                ? data.expense_data.map(e => e.expense_date)
+                : [];
+            const expenseValues = data.expense_data && data.expense_data.length > 0
+                ? data.expense_data.map(e => e.total)
+                : [];
+
+            if (expenseChart) expenseChart.destroy();
+            
+            expenseChart = new Chart(expenseCtx, {
+                type: 'line',
+                data: {
+                    labels: expenseLabels,
+                    datasets: [{
+                        label: 'Expenses (Rs.)',
+                        data: expenseValues,
+                        borderColor: chartColors.blue,
+                        backgroundColor: gradient,
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { labels: { color: textColor } } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: gridColor }, ticks: { color: textColor } },
+                        x: { grid: { display: false }, ticks: { color: textColor } }
+                    }
                 }
-            }
-        });
+            });
+        } catch (e) {
+            console.error('Error initializing expense chart:', e);
+        }
     }
 
+    // Room Chart
     if (document.getElementById('roomChart')) {
-        const roomCtx = document.getElementById('roomChart').getContext('2d');
-        new Chart(roomCtx, {
-            type: 'doughnut',
-            data: {
-                labels: occupancyLabels,
-                datasets: [{
-                    data: occupancyValues,
-                    backgroundColor: [chartColors.cyan, chartColors.blue],
-                    borderWidth: 0
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                cutout: '68%',
-                plugins: { legend: { position: 'bottom', labels: { color: textColor } } }
-            }
-        });
+        try {
+            const roomCtx = document.getElementById('roomChart').getContext('2d');
+            
+            if (roomChart) roomChart.destroy();
+            
+            roomChart = new Chart(roomCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Occupied', 'Available'],
+                    datasets: [{
+                        data: [data.total_occupied, data.total_available],
+                        backgroundColor: [chartColors.cyan, chartColors.blue],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '68%',
+                    plugins: { legend: { position: 'bottom', labels: { color: textColor } } }
+                }
+            });
+        } catch (e) {
+            console.error('Error initializing room chart:', e);
+        }
     }
+
+    // Finance Trend Chart
+    if (document.getElementById('financeTrendChart')) {
+        try {
+            const financeCtx = document.getElementById('financeTrendChart').getContext('2d');
+            const monthLabels = (data.monthly_finance || []).map(item => item.month);
+            const rentValues = (data.monthly_finance || []).map(item => item.rent_collected || 0);
+            const expenseValues = (data.monthly_finance || []).map(item => item.expense_total || 0);
+
+            if (financeTrendChart) financeTrendChart.destroy();
+
+            financeTrendChart = new Chart(financeCtx, {
+                data: {
+                    labels: monthLabels,
+                    datasets: [
+                        {
+                            type: 'bar',
+                            label: 'Rent Collected',
+                            data: rentValues,
+                            backgroundColor: 'rgba(106, 243, 214, 0.5)',
+                            borderColor: chartColors.cyan,
+                            borderWidth: 1
+                        },
+                        {
+                            type: 'line',
+                            label: 'Expenses',
+                            data: expenseValues,
+                            borderColor: chartColors.gold,
+                            backgroundColor: 'rgba(255, 203, 107, 0.2)',
+                            borderWidth: 3,
+                            tension: 0.35,
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { labels: { color: textColor } } },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: gridColor }, ticks: { color: textColor } },
+                        x: { grid: { display: false }, ticks: { color: textColor } }
+                    }
+                }
+            });
+        } catch (e) {
+            console.error('Error initializing finance trend chart:', e);
+        }
+    }
+
+    // Rent Status Chart
+    if (document.getElementById('rentStatusChart')) {
+        try {
+            const statusCtx = document.getElementById('rentStatusChart').getContext('2d');
+            const statusMap = data.rent_status_counts || {};
+            const labels = ['Paid', 'Pending', 'Overdue', 'Cancelled'];
+            const values = labels.map(label => statusMap[label] || 0);
+
+            if (rentStatusChart) rentStatusChart.destroy();
+
+            rentStatusChart = new Chart(statusCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: values,
+                        backgroundColor: ['#6af3d6', '#ffcb6b', '#ff7d7d', '#91a8c1'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '64%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { color: textColor }
+                        }
+                    }
+                }
+            });
+        } catch (e) {
+            console.error('Error initializing rent status chart:', e);
+        }
+    }
+}
+
+function formatCurrency(value) {
+    return `Rs. ${Number(value || 0).toLocaleString('en-IN')}`;
+}
+
+function renderPendingDuesTable(rows) {
+    const tbody = document.getElementById('pending-dues-body');
+    if (!tbody) return;
+
+    if (!rows || rows.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="table-empty">No pending dues found.</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = rows.map(row => `
+        <tr>
+            <td>${row.student_name || '-'}</td>
+            <td>${row.room_no ? 'Room ' + row.room_no : '-'}</td>
+            <td>${row.due_date || '-'}</td>
+            <td>${formatCurrency(row.amount)}</td>
+            <td>${row.status || '-'}</td>
+        </tr>
+    `).join('');
+}
+
+function renderExpenseCategoryTable(rows) {
+    const tbody = document.getElementById('expense-category-body');
+    if (!tbody) return;
+
+    if (!rows || rows.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3" class="table-empty">No expense data found.</td></tr>';
+        return;
+    }
+
+    tbody.innerHTML = rows.map(row => `
+        <tr>
+            <td>${row.expense_type || '-'}</td>
+            <td>${row.entry_count || 0}</td>
+            <td>${formatCurrency(row.total_amount)}</td>
+        </tr>
+    `).join('');
+}
+
+function updateMetrics(data) {
+    console.log('Updating metrics with data:', data);
+    
+    try {
+        // Update metric cards
+        document.getElementById('metric-students').textContent = data.students;
+        document.getElementById('metric-occupancy').textContent = data.occupancy_percentage + '%';
+        document.getElementById('occupancy-detail').textContent = `${data.total_occupied}/${data.total_capacity} rooms`;
+        document.getElementById('metric-expense').textContent = `Rs. ${data.expense}`;
+        document.getElementById('metric-collection').textContent = data.rent_collection_percentage + '%';
+        document.getElementById('metric-collected').textContent = `Rs. ${data.rent_collected}`;
+        document.getElementById('collected-detail').textContent = `${data.total_paid_rent} entries`;
+        document.getElementById('metric-pending').textContent = `Rs. ${data.rent_pending}`;
+        document.getElementById('pending-detail').textContent = `${data.total_unpaid_rent} entries`;
+        document.getElementById('metric-rooms').textContent = data.rooms;
+        document.getElementById('metric-available').textContent = data.total_available;
+        document.getElementById('current-date').textContent = data.current_date;
+        
+        // Update snapshots
+        document.getElementById('snapshot-paid').textContent = `Rs. ${data.rent_collected}`;
+        document.getElementById('snapshot-pending').textContent = `Rs. ${data.rent_pending}`;
+        document.getElementById('snapshot-occupancy').textContent = data.occupancy_percentage + '%';
+
+        // Update tables
+        renderPendingDuesTable(data.pending_dues || []);
+        renderExpenseCategoryTable(data.expense_category_summary || []);
+        
+        // Update charts
+        initCharts(data);
+        console.log('Metrics updated successfully');
+    } catch (e) {
+        console.error('Error updating metrics:', e);
+    }
+}
+
+function applyDateFilter() {
+    const startDate = document.getElementById('start-date').value;
+    const endDate = document.getElementById('end-date').value;
+    
+    console.log('Apply filter clicked - Start Date:', startDate, 'End Date:', endDate);
+    
+    if (!startDate || !endDate) {
+        alert('Please select both start and end dates');
+        return;
+    }
+    
+    if (new Date(startDate) > new Date(endDate)) {
+        alert('Start date must be before end date');
+        return;
+    }
+    
+    console.log('Calling fetchDashboardData with dates:', startDate, endDate);
+    fetchDashboardData(startDate, endDate);
+}
+
+function resetDateFilter() {
+    console.log('Reset filter clicked');
+    document.getElementById('start-date').value = '';
+    document.getElementById('end-date').value = '';
+    fetchDashboardData(null, null);
+}
+
+function fetchDashboardData(startDate = null, endDate = null) {
+    const params = new URLSearchParams();
+    if (startDate) params.append('start_date', startDate);
+    if (endDate) params.append('end_date', endDate);
+    
+    const url = `/api/dashboard-data${params.toString() ? '?' + params.toString() : ''}`;
+    console.log('Fetching dashboard data from:', url);
+    
+    fetch(url)
+        .then(response => {
+            console.log('Response status:', response.status);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Data received:', data);
+            if (data.error) {
+                throw new Error(data.error);
+            }
+            updateMetrics(data);
+        })
+        .catch(error => {
+            console.error('Error fetching dashboard data:', error);
+            alert('Failed to update dashboard: ' + error.message);
+        });
+}
+
+function startAutoRefresh() {
+    console.log('Starting auto-refresh interval');
+    if (autoRefreshInterval) clearInterval(autoRefreshInterval);
+    
+    autoRefreshInterval = setInterval(() => {
+        const startDate = document.getElementById('start-date').value;
+        const endDate = document.getElementById('end-date').value;
+        console.log('Auto-refresh triggered');
+        fetchDashboardData(startDate || null, endDate || null);
+    }, 30000);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Dashboard loaded - initializing');
+    
+    const data = {
+        students: {{ students }},
+        rooms: {{ rooms }},
+        expense: {{ expense }},
+        expense_data: {{ expense_data|tojson }},
+        total_occupied: {{ total_occupied }},
+        total_available: {{ total_available }},
+        total_capacity: {{ total_capacity }},
+        occupancy_percentage: {{ occupancy_percentage }},
+        total_paid_rent: {{ total_paid_rent }},
+        total_unpaid_rent: {{ total_unpaid_rent }},
+        rent_collection_percentage: {{ rent_collection_percentage }},
+        rent_collected: {{ rent_collected }},
+        rent_pending: {{ rent_pending }},
+        rent_status_counts: {{ rent_status_counts|tojson }},
+        monthly_finance: {{ monthly_finance|tojson }},
+        pending_dues: {{ pending_dues|tojson }},
+        expense_category_summary: {{ expense_category_summary|tojson }},
+        current_date: "{{ current_date }}"
+    };
+    
+    console.log('Initial dashboard data:', data);
+    updateMetrics(data);
+    startAutoRefresh();
+});
+
+window.addEventListener('beforeunload', function() {
+    if (autoRefreshInterval) clearInterval(autoRefreshInterval);
 });
 </script>
 {% endblock %}
