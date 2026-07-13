@@ -8,7 +8,7 @@ from werkzeug.security import generate_password_hash
 DB_CONFIG = {
     "host": os.getenv("DB_HOST", "localhost"),
     "user": os.getenv("DB_USER", "root"),
-    "password": os.getenv("DB_PASSWORD", ""),
+    "password": os.getenv("DB_PASSWORD", "root123"),
     "database": os.getenv("DB_NAME", "hostel_db"),
 }
 USERNAME = os.getenv("ADMIN_USERNAME", "admin")

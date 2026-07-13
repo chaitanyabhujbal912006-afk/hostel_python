@@ -7,9 +7,8 @@ dashboard_bp = Blueprint("dashboard", __name__)
 
 def get_fresh_db_connection():
     """Create a fresh database connection for each request"""
-    db, _ = get_db_connection()
-    if db:
-        cursor = db.cursor(dictionary=True)
+    db, cursor = get_db_connection()
+    if db and cursor:
         return db, cursor
     return None, None
 
@@ -56,13 +55,13 @@ def get_dashboard_metrics(start_date=None, end_date=None):
         if start_date and end_date:
             cursor.execute(
                 """
-                SELECT IFNULL(SUM(amount),0) AS total_expense FROM expenses
+                SELECT COALESCE(SUM(amount),0) AS total_expense FROM expenses
                 WHERE expense_date BETWEEN %s AND %s
                 """,
                 (start_date, end_date)
             )
         else:
-            cursor.execute("SELECT IFNULL(SUM(amount),0) AS total_expense FROM expenses")
+            cursor.execute("SELECT COALESCE(SUM(amount),0) AS total_expense FROM expenses")
         expenses = cursor.fetchone()
 
         # Expense data with date filtering
@@ -143,7 +142,7 @@ def get_dashboard_metrics(start_date=None, end_date=None):
                 (start_date, end_date)
             )
         else:
-            cursor.execute("SELECT IFNULL(SUM(amount),0) AS total_collected FROM rent WHERE status='Paid'")
+            cursor.execute("SELECT COALESCE(SUM(amount),0) AS total_collected FROM rent WHERE status='Paid'")
         rent_collected = cursor.fetchone()
 
         if start_date and end_date:
@@ -152,7 +151,7 @@ def get_dashboard_metrics(start_date=None, end_date=None):
                 (start_date, end_date)
             )
         else:
-            cursor.execute("SELECT IFNULL(SUM(amount),0) AS total_pending FROM rent WHERE status IN ('Pending', 'Overdue')")
+            cursor.execute("SELECT COALESCE(SUM(amount),0) AS total_pending FROM rent WHERE status IN ('Pending', 'Overdue')")
         rent_pending = cursor.fetchone()
 
         total_paid_rent = paid_rent["total_rent"] or 0
@@ -196,7 +195,7 @@ def get_dashboard_metrics(start_date=None, end_date=None):
             finance_params = [start_date, end_date]
 
         rent_monthly_query = f"""
-            SELECT month_year AS month, IFNULL(SUM(amount), 0) AS rent_collected
+            SELECT month_year AS month, COALESCE(SUM(amount), 0) AS rent_collected
             FROM rent
             {finance_where_rent}
             GROUP BY month_year
@@ -210,10 +209,10 @@ def get_dashboard_metrics(start_date=None, end_date=None):
         rent_monthly_rows = cursor.fetchall()
 
         expense_monthly_query = f"""
-            SELECT DATE_FORMAT(expense_date, '%%Y-%%m') AS month, IFNULL(SUM(amount), 0) AS expense_total
+            SELECT strftime('%%Y-%%m', expense_date) AS month, COALESCE(SUM(amount), 0) AS expense_total
             FROM expenses
             {finance_where_expense}
-            GROUP BY DATE_FORMAT(expense_date, '%%Y-%%m')
+            GROUP BY strftime('%%Y-%%m', expense_date)
             ORDER BY month DESC
             LIMIT 6
             """
@@ -249,12 +248,14 @@ def get_dashboard_metrics(start_date=None, end_date=None):
                 """
                 SELECT
                     r.rent_id,
-                    CONCAT(s.first_name, ' ', s.last_name) AS student_name,
+                    (s.first_name || ' ' || s.last_name) AS student_name,
                     rm.room_no,
                     r.due_date,
                     r.amount,
                     r.status,
-                    GREATEST(DATEDIFF(CURDATE(), r.due_date), 0) AS days_overdue
+                    CASE WHEN julianday('now') - julianday(r.due_date) > 0
+                        THEN CAST(julianday('now') - julianday(r.due_date) AS INTEGER)
+                        ELSE 0 END AS days_overdue
                 FROM rent r
                 JOIN student s ON r.student_id = s.student_id
                 JOIN room rm ON r.room_id = rm.room_id
@@ -269,12 +270,14 @@ def get_dashboard_metrics(start_date=None, end_date=None):
                 """
                 SELECT
                     r.rent_id,
-                    CONCAT(s.first_name, ' ', s.last_name) AS student_name,
+                    (s.first_name || ' ' || s.last_name) AS student_name,
                     rm.room_no,
                     r.due_date,
                     r.amount,
                     r.status,
-                    GREATEST(DATEDIFF(CURDATE(), r.due_date), 0) AS days_overdue
+                    CASE WHEN julianday('now') - julianday(r.due_date) > 0
+                        THEN CAST(julianday('now') - julianday(r.due_date) AS INTEGER)
+                        ELSE 0 END AS days_overdue
                 FROM rent r
                 JOIN student s ON r.student_id = s.student_id
                 JOIN room rm ON r.room_id = rm.room_id
@@ -303,7 +306,7 @@ def get_dashboard_metrics(start_date=None, end_date=None):
         if start_date and end_date:
             cursor.execute(
                 """
-                SELECT expense_type, COUNT(*) AS entry_count, IFNULL(SUM(amount), 0) AS total_amount
+                SELECT expense_type, COUNT(*) AS entry_count, COALESCE(SUM(amount), 0) AS total_amount
                 FROM expenses
                 WHERE expense_date BETWEEN %s AND %s
                 GROUP BY expense_type
@@ -315,7 +318,7 @@ def get_dashboard_metrics(start_date=None, end_date=None):
         else:
             cursor.execute(
                 """
-                SELECT expense_type, COUNT(*) AS entry_count, IFNULL(SUM(amount), 0) AS total_amount
+                SELECT expense_type, COUNT(*) AS entry_count, COALESCE(SUM(amount), 0) AS total_amount
                 FROM expenses
                 GROUP BY expense_type
                 ORDER BY total_amount DESC
@@ -352,7 +355,7 @@ def get_dashboard_metrics(start_date=None, end_date=None):
             "expense_category_summary": expense_category_summary,
             "current_date": datetime.now().strftime("%A, %B %d, %Y"),
         }
-    except mysql.connector.Error as err:
+    except Exception as err:
         print(f"Database Query Error: {err}")
         return None
     finally:
